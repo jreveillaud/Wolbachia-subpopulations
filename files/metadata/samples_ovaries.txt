@@ -1,0 +1,5 @@
+sample	r1	r2
+Culex_M11	/work_projet/culex/data/ovaries/ERR2523110_1.fastq.gz	/work_projet/culex/data/ovaries/ERR2523110_2.fastq.gz
+Culex_M12	/work_projet/culex/data/ovaries/ERR2523111_1.fastq.gz	/work_projet/culex/data/ovaries/ERR2523111_2.fastq.gz
+Culex_M03	/work_projet/culex/data/ovaries/ERR2523112_1.fastq.gz	/work_projet/culex/data/ovaries/ERR2523112_2.fastq.gz
+Culex_M07	/work_projet/culex/data/ovaries/ERR2523113_1.fastq.gz	/work_projet/culex/data/ovaries/ERR2523113_1.fastq.gz

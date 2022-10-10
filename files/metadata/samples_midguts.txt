@@ -1,0 +1,7 @@
+sample	r1	r2
+Culex_M03	/work_projet/culex/data/CBX_AEOSDA_1_1_HT2J2BBXX.12BA150_clean.fastq.gz,/work_projet/culex/data/CBX_AEOSDA_2_1_HT2J2BBXX.12BA150_clean.fastq.gz	/work_projet/culex/data/CBX_AEOSDA_1_2_HT2J2BBXX.12BA150_clean.fastq.gz,/work_projet/culex/data/CBX_AEOSDA_2_2_HT2J2BBXX.12BA150_clean.fastq.gz
+Culex_M07	/work_projet/culex/data/CBX_AFOSDA_1_1_HT2J2BBXX.12BA151_clean.fastq.gz,/work_projet/culex/data/CBX_AFOSDA_2_1_HT2J2BBXX.12BA151_clean.fastq.gz	/work_projet/culex/data/CBX_AFOSDA_1_2_HT2J2BBXX.12BA151_clean.fastq.gz,/work_projet/culex/data/CBX_AFOSDA_2_2_HT2J2BBXX.12BA151_clean.fastq.gz
+Culex_M11	/work_projet/culex/data/CBX_AGOSDA_1_1_HT2J2BBXX.12BA152_clean.fastq.gz,/work_projet/culex/data/CBX_AGOSDA_2_1_HT2J2BBXX.12BA152_clean.fastq.gz	/work_projet/culex/data/CBX_AGOSDA_1_2_HT2J2BBXX.12BA152_clean.fastq.gz,/work_projet/culex/data/CBX_AGOSDA_2_2_HT2J2BBXX.12BA152_clean.fastq.gz
+Culex_M12	/work_projet/culex/data/CBX_AHOSDA_1_1_HT2J2BBXX.12BA153_clean.fastq.gz,/work_projet/culex/data/CBX_AHOSDA_2_1_HT2J2BBXX.12BA153_clean.fastq.gz	/work_projet/culex/data/CBX_AHOSDA_1_2_HT2J2BBXX.12BA153_clean.fastq.gz,/work_projet/culex/data/CBX_AHOSDA_2_2_HT2J2BBXX.12BA153_clean.fastq.gz
+Culex_M01	/work_projet/culex/data/CBX_AIOSDA_2_1_HT2J2BBXX.12BA154_clean.fastq.gz	/work_projet/culex/data/CBX_AIOSDA_2_2_HT2J2BBXX.12BA154_clean.fastq.gz
+Culex_M09	/work_projet/culex/data/CBX_AJOSDA_2_1_HT2J2BBXX.12BA155_clean.fastq.gz	/work_projet/culex/data/CBX_AJOSDA_2_2_HT2J2BBXX.12BA155_clean.fastq.gz

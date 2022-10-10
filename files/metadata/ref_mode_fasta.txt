@@ -1,0 +1,6 @@
+name	path
+M11	/work_projet/culex/metapangenomics/data/Wolbachia-contigs/Wolbachia-contigs-M11.fa
+O03	/work_projet/culex/metapangenomics/data/Wolbachia-contigs/Wolbachia-contigs-O03.fa
+O07	/work_projet/culex/metapangenomics/data/Wolbachia-contigs/Wolbachia-contigs-O07.fa
+O11	/work_projet/culex/metapangenomics/data/Wolbachia-contigs/Wolbachia-contigs-O11.fa
+O12	/work_projet/culex/metapangenomics/data/Wolbachia-contigs/Wolbachia-contigs-O12.fa

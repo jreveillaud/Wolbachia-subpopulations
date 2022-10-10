@@ -1,0 +1,11 @@
+sample	r1	r2
+M01	/work_projet/culex/metapangenomics/data/01_QC_midguts/Culex_M01-QUALITY_PASSED_R1.fastq.gz	/work_projet/culex/metapangenomics/data/01_QC_midguts/Culex_M01-QUALITY_PASSED_R2.fastq.gz
+M03	/work_projet/culex/metapangenomics/data/01_QC_midguts/Culex_M03-QUALITY_PASSED_R1.fastq.gz	/work_projet/culex/metapangenomics/data/01_QC_midguts/Culex_M03-QUALITY_PASSED_R2.fastq.gz
+M07	/work_projet/culex/metapangenomics/data/01_QC_midguts/Culex_M07-QUALITY_PASSED_R1.fastq.gz	/work_projet/culex/metapangenomics/data/01_QC_midguts/Culex_M07-QUALITY_PASSED_R2.fastq.gz
+M09	/work_projet/culex/metapangenomics/data/01_QC_midguts/Culex_M09-QUALITY_PASSED_R1.fastq.gz	/work_projet/culex/metapangenomics/data/01_QC_midguts/Culex_M09-QUALITY_PASSED_R2.fastq.gz
+M11	/work_projet/culex/metapangenomics/data/01_QC_midguts/Culex_M11-QUALITY_PASSED_R1.fastq.gz	/work_projet/culex/metapangenomics/data/01_QC_midguts/Culex_M11-QUALITY_PASSED_R2.fastq.gz
+M12	/work_projet/culex/metapangenomics/data/01_QC_midguts/Culex_M12-QUALITY_PASSED_R1.fastq.gz	/work_projet/culex/metapangenomics/data/01_QC_midguts/Culex_M12-QUALITY_PASSED_R2.fastq.gz
+O03	/work_projet/culex/metapangenomics/data/01_QC_ovaries/Culex_O03-QUALITY_PASSED_R1.fastq.gz	/work_projet/culex/metapangenomics/data/01_QC_ovaries/Culex_O03-QUALITY_PASSED_R2.fastq.gz
+O07	/work_projet/culex/metapangenomics/data/01_QC_ovaries/Culex_O07-QUALITY_PASSED_R1.fastq.gz	/work_projet/culex/metapangenomics/data/01_QC_ovaries/Culex_O07-QUALITY_PASSED_R2.fastq.gz
+O11	/work_projet/culex/metapangenomics/data/01_QC_ovaries/Culex_O11-QUALITY_PASSED_R1.fastq.gz	/work_projet/culex/metapangenomics/data/01_QC_ovaries/Culex_O11-QUALITY_PASSED_R2.fastq.gz
+O12	/work_projet/culex/metapangenomics/data/01_QC_ovaries/Culex_O12-QUALITY_PASSED_R1.fastq.gz	/work_projet/culex/metapangenomics/data/01_QC_ovaries/Culex_O12-QUALITY_PASSED_R2.fastq.gz
