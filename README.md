@@ -97,7 +97,9 @@ We used the anvi-display-contig-stats to generate a report including all our sam
 anvi-display-contigs-stats 03_CONTIGS/*-contigs.db --report-as-text --output-file CONTIGS-STATS.txt 
 ```
 
-  contigs_db	          | Culex_M01 |Culex_M03  |Culex_M07  | Culex_M09 | Culex_M11 | Culex_M12 |
+Output for midguts:
+
+  contigs_db	          | Culex_M01 |Culex_M03  |Culex_M07  | Culex_M09 | Culex_M11 | Culex_M12 | 
 |:---------------------:|:---------:|:---------:|:---------:|:---------:|:---------:|:---------:|
   Total Length	        | 360227583 | 249300854 | 344361265 |150118498  | 613485459 | 3365464   |
   Num Contigs	          | 175034	  | 133816	  | 169207	  | 92326	    | 237602	  | 2230      |
@@ -131,7 +133,40 @@ anvi-display-contigs-stats 03_CONTIGS/*-contigs.db --report-as-text --output-fil
   bacteria (Bacteria_71)|	1	        | 1	        | 1	        | 0	        | 3	        | 0         |
 
 
+Output for ovaries: 
 
+  contigs_db	          | Culex_O03 |	Culex_O07	| Culex_O11	| Culex_O12 |
+|:---------------------:|:---------:|:---------:|:---------:|:---------:|
+  Total Length	        | 618074637	| 238540242	| 599730856	| 550583510 |
+  Num Contigs	          | 247594	  | 131080	  | 243215	  | 236095    |
+  Num Contigs > 100 kb	| 0	        | 0	        | 0	        | 0         |
+  Num Contigs > 50 kb	  | 3	        | 3	        | 3	        | 3         |
+  Num Contigs > 20 kb	  | 38	      | 22	      | 45	      | 42        |
+  Num Contigs > 10 kb	  | 1264	    | 118	      | 1186    	| 849       |
+  Num Contigs > 5 kb	  | 18599	    | 1535	    | 17386	    | 13707     |
+  Num Contigs > 2.5 kb	| 87141	    | 19639	    | 83577	    | 72556     |
+  Longest Contig	      | 87423	    | 87270	    | 75610	    | 87423     |
+  Shortest Contig	      | 1000	    | 1000	    | 1000	    | 1000      |
+  Num Genes (prodigal)	| 445444	  | 186211	  | 432072	  | 395881    |
+  L50	                  | 67596	    | 43369	    | 66639	    | 65780     |
+  L75	                  | 134695	  | 80292	    | 132760	  | 130997    |
+  L90	                  | 193940	  | 108729	  | 190943	  | 187157    |
+  N50	                  | 2895	    | 1890	    | 2845	    | 2636      |
+  N75	                  | 1847	    | 1389	    | 1816	    | 1706      |
+  N90                   | 1323	    | 1142	    | 1312	    | 1266      |
+  Archaea_76	          | 159	      | 125	      | 161	      | 161       |
+  Bacteria_71	          | 164	      | 136	      | 165	      | 154       |
+  Protista_83	          | 98	      | 79	      | 93	      | 86        |
+  Ribosomal_RNA_12S	    | 0	        | 0	        | 0	        | 0         |
+  Ribosomal_RNA_16S	    | 1	        | 1	        | 1	        | 1         |
+  Ribosomal_RNA_18S	    | 1	        | 1	        | 1	        | 1         |
+  Ribosomal_RNA_23S	    | 3	        | 1	        | 1	        | 1         |
+  Ribosomal_RNA_28S	    | 2	        | 1	        | 1	        | 1         |
+  Ribosomal_RNA_5S	    | 0	        | 0	        | 0	        | 0         |
+  Transfer_RNAs	        | 14242	    | 1681	    | 13443	    | 11832     |
+  bacteria (Bacteria_71)|	1	        | 2	        | 2	        | 1         |
+  eukarya (Protista_83)	| 1	        | 1	        | 1	        | 1         |
+  archaea (Archaea_76)	| 0	        | 1	        | 0	        | 1         |
 
 
 ## Binning
