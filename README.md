@@ -85,7 +85,7 @@ The complete anvi'o metagenomics workflow results on the following folders:
 * `05_ANVIO_PROFILE`: Anvi’o single profiles for each sample
 * `06_MERGED`: Anvi’o merged profile databases for each assembly
 
-All the anvi'o merged profile databases are available at XXX (midguts) and XXX (ovaries*). 
+All the anvi'o merged profile databases are available at 10.5281/zenodo.7183277 (midguts) and XXX (ovaries*). 
 * will be added
 
 
@@ -247,7 +247,7 @@ After refinement using the anvi-refine program, we obtained five Wolbachia MAGs:
 | O07           | 91.55        | 0            | 143        | 1,340,038    | 34.4         |
 | O12           | 91.55        | 0            | 75         | 1,181,440    | 33.9         |
 
-The FASTA files for individual bin are availble at XXX. 
+The FASTA files for individual bin are availble at 10.5281/zenodo.7183304. 
 
 
 # Explore the co-occurence of Wolbachia subpopulations accross metagenomes using the references-mode
@@ -270,7 +270,7 @@ The references-mode includes the same steps described above but it also allows t
 To run it:
 [run_metagenomics_ref_mode.sh](files/script/run_metagenomics_ref_mode.sh)
 
-The final anvi'o merged profile.db from references-mode are available at XXX.
+The final anvi'o merged profile.db from references-mode are available at 10.5281/zenodo.7183324.
 
 
 ## Variability and (Meta)pangenomics
