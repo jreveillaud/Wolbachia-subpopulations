@@ -94,10 +94,44 @@ All the anvi'o merged profile databases are available at XXX (midguts) and XXX (
 We used the anvi-display-contig-stats to generate a report including all our samples.
 
 ```
-anvi-display-contig-stats 03_CONTIGS/*-contigs.db --report-as-text --output-file CONTIGS-STATS.txt 
+anvi-display-contigs-stats 03_CONTIGS/*-contigs.db --report-as-text --output-file CONTIGS-STATS.txt 
 ```
 
-ADD TABLE
+  contigs_db	          | Culex_M01 |Culex_M03  |Culex_M07  | Culex_M09 | Culex_M11 | Culex_M12 |
+|:---------------------:|:---------:|:---------:|:---------:|:---------:|:---------:|:---------:|
+  Total Length	        | 360227583 | 249300854 | 344361265 |150118498  | 613485459 | 3365464   |
+  Num Contigs	          | 175034	  | 133816	  | 169207	  | 92326	    | 237602	  | 2230      |
+  Num Contigs > 100 kb	| 0	        | 0	        | 0	        | 0	        | 0	        | 0         |
+  Num Contigs > 50 kb	  | 0	        | 0	        | 0	        | 0	        | 4	        | 0         |
+  Num Contigs > 20 kb	  | 6	        | 3	        | 7	        | 0	        | 49	      | 0         |
+  Num Contigs > 10 kb	  | 277 	    | 89	      | 282	      | 11	      | 1569	    | 1         |
+  Num Contigs > 5 kb	  | 5667	    | 2281	    | 5201	    | 603	      | 20463	    | 17        |
+  Num Contigs > 2.5 kb	| 41027	    | 22940	    | 38340	    | 8605	    | 88045	    | 145       |
+  Longest Contig	      | 28329	    | 48513	    | 36009	    | 15727	    | 75699	    | 16613     |
+  Shortest Contig	      | 1000	    | 1000	    | 1000	    | 1000	    | 1000	    | 1000      |
+  Num Genes (prodigal)	| 265946	  | 194792	  | 256186	  | 123803	  | 441013	  | 2683      |
+  L50	                  | 51752	    | 42561	    | 50264	    | 32193	    | 63529	    | 779       |
+  L75	                  | 101140	  | 80672	    | 98167	    | 58676	    | 127361	  | 1443      |
+  L90	                  | 141809    |	110425    |	137369    |	77946     |	184732    |	1902      |
+  N50	                  | 2233	    | 1942	    | 2200	    | 1619	    | 3043	    | 1431      |
+  N75	                  | 1505	    | 1391	    | 1487	    | 1254	    | 1906	    | 1153      |
+  N90	                  | 1178	    | 1139	    | 1173  	  | 1092	    | 1343	    | 1053      |
+  Archaea_76	          | 95	      | 93	      | 115	      | 91	      | 187	      | 0         |
+  Bacteria_71	          | 74	      | 74	      | 85	      | 69	      | 200	      | 1         |
+  Protista_83	          | 79	      | 79	      | 81	      | 66	      | 99	      | 1         |
+  Ribosomal_RNA_12S	    | 0	        | 0	        | 0	        | 0	        | 0	        | 0         |
+  Ribosomal_RNA_16S	    | 0	        | 0	        | 0	        | 0	        | 3	        | 0         |
+  Ribosomal_RNA_18S	    | 1	        | 1	        | 1	        | 1	        | 1	        | 2         |
+  Ribosomal_RNA_23S	    | 0	        | 0	        | 0	        | 0	        | 5	        | 0         |
+  Ribosomal_RNA_28S	    | 1	        | 1	        | 1	        | 1	        | 2	        | 1         |
+  Ribosomal_RNA_5S	    | 0	        | 0	        | 0	        | 0	        | 0	        | 0         |
+  Transfer_RNAs	        | 5989	    | 3682	    | 5582	    | 1794	    | 13694     | 50        |
+  eukarya (Protista_83)	| 1	        | 1	        | 1	        | 1	        | 1	        | 0         |
+  archaea (Archaea_76)	| 1	        | 1	        | 1	        | 1	        | 0	        | 0         |
+  bacteria (Bacteria_71)|	1	        | 1	        | 1	        | 0	        | 3	        | 0         |
+
+
+
 
 
 ## Binning
@@ -201,9 +235,7 @@ All the bacterial reconstructed genomes were assigned to Wolbachia (GTDB).
 
 ## Refinement
 
-We used the anvi-refine function to manually refine our reconstructed genomes. To do that, we removed all the splits that do not correspond to Wolbachia. Here is the interactive view of Wolbachia MAG M11 refinement for example: 
-
-
+We used the anvi-refine function to manually refine our reconstructed genomes. To do that, we removed all the splits that do not correspond to Wolbachia.
 
 After refinement using the anvi-refine program, we obtained five Wolbachia MAGs:
 
