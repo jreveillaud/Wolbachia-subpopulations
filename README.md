@@ -85,8 +85,7 @@ The complete anvi'o metagenomics workflow results on the following folders:
 * `05_ANVIO_PROFILE`: Anvi’o single profiles for each sample
 * `06_MERGED`: Anvi’o merged profile databases for each assembly
 
-All the anvi'o merged profile databases are available at [10.5281/zenodo.7183277](10.5281/zenodo.7183277) (midguts) and XXX (ovaries*). 
-* will be added
+All the anvi'o merged profile databases from midgut and ovary samples are available at [10.5281/zenodo.7183277](10.5281/zenodo.7183277).
 
 
 ## Assembly
