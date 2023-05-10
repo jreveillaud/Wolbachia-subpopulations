@@ -318,8 +318,37 @@ To study the variability and metapangenomics, you can run these scripts:
 * [5-generate-variability-tables-and-interactive-snv.Rmd](files/script/snv_metapan/5-generate-variability-tables-and-interactive-snv.Rmd): Generate variability tables (Single Nucleotide Variants, Single Codon Variants, Single Amino Acid Variants), indels/insertion tables at intra-MAGs and inter-MAGs level and prepare interactive view of SNVs.
 * [6-prepare-additional-data-to-snvs.R](files/script/snv_metapan/6-prepare-additional-data-to-snvs.R): Prepare additionnal data (MLST and wsp assignments) to add in interactive view of SNVs. 
 * [7-select-SNV-SCV-SAAVs.R](files/script/snv_metapan/7-select-SNV-SCV-SAAVs.R): Select SCV and SAAV generated from only the filtered SNVs.
-* [8-merge_gene_cluster_SNV.R](files/script/snv_metapan/8-merge_gene_cluster_SNV.R): Identify shared SNVs, Shared Single copy Genes (SSG) from the Gene Cluster tables (pangenomics), link the SSG and SNVs informations to export it in SNV interactive databases.
-* [9-add-SSG-to-interactive-SNV.sh](files/script/snv_metapan/9-add-SSG-to-interactive-SNV.sh): Add SSG infos in snv interactive databases.
+* [8-merge_gene_cluster_SNV.R](files/script/snv_metapan/8-merge_gene_cluster_SNV.R): Identify shared SNVs, Single copy Core Genes from *Wolbachia* (wSCG) from the Gene Cluster tables (pangenomics), link the wSCG and SNVs informations to export it in SNV interactive databases.
+* [9-add-wSCG-to-interactive-SNV.sh](files/script/snv_metapan/9-add-wSCG-to-interactive-SNV.sh): Add wSCG infos in snv interactive databases.
 * [10-SNV-figure-for-selected-splits.Rmd](files/script/snv_metapan/10-SNV-figure-for-selected-splits.Rmd): Generate SNV and gene figures for selected splits from *Wolbachia* MAG O11. We then used Inskape to create the final SNV figures for these splits. 
 
+
+
+
+# Explore the co-occurence of Wolbachia subpopulations accross additional Wolbachia metagenomes (from eggs)
+
+## Download eggs metagenomes
+
+| Sample name | ENA sample accession |
+|:-----------:|:--------------------:|
+| Istanbul    | SRR5810516           |
+| Harash      | SRR5810517           |
+| Tunis       | SRR5810518           |
+
+
+## Configuration files
+
+### Fasta file
+[ref_mode_fasta.txt](files/metadata/ref_mode_fasta.txt)
+
+### Sample file
+[samples_eggs.txt](files/metadata/samples_eggs.txt)
+
+### Config file
+[ref_mode_eggs_config.json](files/metadata/ref_mode_eggs_config.json)
+
+## Run the anvi'o metagenomics workflow using "references-mode"
+
+To run it:
+[run_metagenomics_ref_mode.sh](files/script/run_metagenomics_ref_mode.sh)
 

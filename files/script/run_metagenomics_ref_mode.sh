@@ -23,6 +23,9 @@ source /usr/local/genome/Anaconda3/etc/profile.d/conda.sh
 #-l hostname=n3
 
 conda activate anvio-7.1
-anvi-run-workflow -w metagenomics -c config-references-mode-full.json --additional-params --cluster 'qsub -V -cwd -N {rule} -q long.q -o {log} -e {log} -pe thread {threads} -S /bin/bash' --jobscript jobscript.sh --rerun-incomplete --jobs 100 --latency-wait 100 --unlock
-anvi-run-workflow -w metagenomics -c config-references-mode-full.json --additional-params --cluster 'qsub -V -cwd -N {rule} -q long.q -o {log} -e {log} -pe thread {threads} -S /bin/bash' --jobscript jobscript.sh --rerun-incomplete --jobs 100 --latency-wait 100
+
+anvi-run-workflow -w metagenomics -c ref_mode_config.json --additional-params --cluster 'qsub -V -cwd -N {rule} -q long.q -o {log} -e {log} -pe thread {threads} -S /bin/bash' --jobscript jobscript.sh --rerun-incomplete --jobs 100 --latency-wait 100 --unlock
+
+anvi-run-workflow -w metagenomics -c ref_mode_config.json --additional-params --cluster 'qsub -V -cwd -N {rule} -q long.q -o {log} -e {log} -pe thread {threads} -S /bin/bash' --jobscript jobscript.sh --rerun-incomplete --jobs 100 --latency-wait 100
+
 conda deactivate
