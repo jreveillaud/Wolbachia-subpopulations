@@ -76,7 +76,7 @@
         "--drop-previous-annotations": "",
         "threads": ""
     },
-    "samples_txt": "../../metadata/proper/samples_ovaries.txt",
+    "samples_txt": "samples_ovaries.txt",
     "metaspades": {
         "additional_params": "--only-assembler",
         "threads": 7,

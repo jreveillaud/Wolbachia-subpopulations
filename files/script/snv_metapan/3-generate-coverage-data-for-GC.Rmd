@@ -10,6 +10,8 @@ output:
 knitr::opts_knit$set(root.dir = '/Volumes/Elements/Hiseq/metapangenomics/output/Metapan/')
 ```
 
+Script revisited from: https://merenlab.org/data/wolbachia-plasmid/#recovering-coverage-values-for-gene-clusters-of-the-wolbachia-pangenome-in-c-pipiens-metagenomes
+
 # Packages
 ```{r}
 library("dplyr")
@@ -30,11 +32,6 @@ gene_clusters_df <- read.table(file = '../../PAN/2_WOLBACHIA_PAN/Wolbachia-metap
                                header = TRUE,
                                sep = "\t",
                                quote = "")
-
-# gene_clusters_df <- read.table(file = '../../PAN/2_WOLBACHIA_PAN/Wolbachia-meta-wpip-PAN-SUMMARY/Wolbachia_gene_clusters_summary.txt',
-#                                header = TRUE,
-#                                sep = "\t",
-#                                quote = "")
 
 # Display genome names levels
 levels(gene_clusters_df$genome_name)

@@ -2,7 +2,7 @@
     "workflow_name": "metagenomics",
     "config_version": "2",
     "fasta_txt": "ref_mode_fasta.txt",
-    "samples_txt": "ref_mode_samples.txt",
+    "samples_txt": "samples_eggs.txt",
     "references_mode": true,
     "anvi_profile": {
         "threads": 12,

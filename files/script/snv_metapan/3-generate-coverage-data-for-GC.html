@@ -6,7 +6,7 @@
     <meta name="generator" content="pandoc" />
 
     
-        <meta name="date" content="2022-09-28" />
+        <meta name="date" content="2023-05-10" />
     
     <title>Create coverage layer for metapangenomics</title>
 
@@ -1657,7 +1657,7 @@ src: url(data:application/font-sfnt;base64,AAEAAAARAQAABAAQR0RFRgs+Cz8AAjwQAAAAQ
       </ul>
     </div>
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
-                  <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2022-09-28</p>
+                  <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2023-05-10</p>
           </div>
    </div>
      
@@ -1668,6 +1668,7 @@ src: url(data:application/font-sfnt;base64,AAEAAAARAQAABAAQR0RFRgs+Cz8AAjwQAAAAQ
 <!-- Don't indent these lines or it will mess pre blocks indentation --> 
 <div id="main">
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_knit<span class="sc">$</span><span class="fu">set</span>(<span class="at">root.dir =</span> <span class="st">&#39;/Volumes/Elements/Hiseq/metapangenomics/output/Metapan/&#39;</span>)</span></code></pre></div>
+<p>Script revisited from: <a href="https://merenlab.org/data/wolbachia-plasmid/#recovering-coverage-values-for-gene-clusters-of-the-wolbachia-pangenome-in-c-pipiens-metagenomes" class="uri">https://merenlab.org/data/wolbachia-plasmid/#recovering-coverage-values-for-gene-clusters-of-the-wolbachia-pangenome-in-c-pipiens-metagenomes</a></p>
 <div id="packages" class="section level1">
 <h1>Packages</h1>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">&quot;dplyr&quot;</span>)</span></code></pre></div>
@@ -1696,13 +1697,8 @@ src: url(data:application/font-sfnt;base64,AAEAAAARAQAABAAQR0RFRgs+Cz8AAjwQAAAAQ
 <span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>                               <span class="at">sep =</span> <span class="st">&quot;</span><span class="sc">\t</span><span class="st">&quot;</span>,</span>
 <span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>                               <span class="at">quote =</span> <span class="st">&quot;&quot;</span>)</span>
 <span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="co"># gene_clusters_df &lt;- read.table(file = &#39;../../PAN/2_WOLBACHIA_PAN/Wolbachia-meta-wpip-PAN-SUMMARY/Wolbachia_gene_clusters_summary.txt&#39;,</span></span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="co">#                                header = TRUE,</span></span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="co">#                                sep = &quot;\t&quot;,</span></span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="co">#                                quote = &quot;&quot;)</span></span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Display genome names levels</span></span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="fu">levels</span>(gene_clusters_df<span class="sc">$</span>genome_name)</span></code></pre></div>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Display genome names levels</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="fu">levels</span>(gene_clusters_df<span class="sc">$</span>genome_name)</span></code></pre></div>
 <pre><code>## [1] &quot;M11&quot;     &quot;O11&quot;     &quot;wPipPel&quot;</code></pre>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove singleton gene clusters unique to wPip since they have no coverage values</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>gene_clusters_df_of_wPip <span class="ot">&lt;-</span> gene_clusters_df[gene_clusters_df<span class="sc">$</span>genome_name <span class="sc">==</span> <span class="st">&quot;wPipPel&quot;</span>, ]</span></code></pre></div>

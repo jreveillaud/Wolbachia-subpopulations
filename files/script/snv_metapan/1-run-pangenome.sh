@@ -5,95 +5,56 @@ source /Users/hschrieke/opt/miniconda3/etc/profile.d/conda.sh
 conda activate anvio-7.1
 
 
-# Annotate all contigs db with good reference databases
-for s in ../../output/03_CONTIGS_references_mode/*-contigs.db
-do
-anvi-run-hmms -c $s -T 12 --just-do-it
-anvi-run-ncbi-cogs -c $s -T 12 --cog-data-dir /Users/hschrieke/opt/miniconda3/envs/anvio-7.1/lib/python3.6/site-packages/anvio/data/misc/COG
-anvi-run-scg-taxonomy -c $s -T 12 --scgs-taxonomy-data-dir /Users/hschrieke/opt/miniconda3/envs/anvio-7.1/lib/python3.6/site-packages/anvio/data/misc/SCG_TAXONOMY/GTDB
-anvi-run-kegg-kofams -c $s -T 12 --kegg-data-dir /Users/hschrieke/opt/miniconda3/envs/anvio-7.1/lib/python3.6/site-packages/anvio/data/misc/KEGG
-done
-
-#Export function tables
-for s in ../../output/03_CONTIGS_references_mode/*-contigs.db
-do
-anvi-export-functions -c $s -o ../../output/03_CONTIGS_references_mode/$s-functions-table.txt
-done
-
-# # Migrate profile dbs for anvio-7.1
-# for s in M11 O03 O07 O11 O12
-# do
-# anvi-migrate ../06_MERGED_references_mode/$s/PROFILE.db --migrate-dbs-safely
-# done
-
-# Add collection and bin name to profile dbs
-for s in M11 O03 O07 O11 O12
-do
-anvi-script-add-default-collection -p ../../output/06_MERGED_references_mode/$s/PROFILE.db \
--c ../../output/03_CONTIGS_references_mode/$s-contigs.db \
--C Wolbachia \
--b $s
-done
-
-# Summarize each sample
-for s in M11 O03 O07 O11 O12
-do
-anvi-summarize -c ../../output/03_CONTIGS_references_mode/$s-contigs.db \
--p ../../output/06_MERGED_references_mode/$s/PROFILE.db \
--C Wolbachia \
---init-gene-coverages \
--o ../../output/03_CONTIGS_references_mode/$s-SUMMARY
-done
-
-
-
-# PREPARE WOLBACHIA REFERENCE GENOMES
+## PREPARE WOLBACHIA REFERENCE GENOMES
 
 # create a specific folder for pangenomic
 mkdir ../../output/Metapan ../../output/Metapan/PAN && cd ../../output/Metapan/PAN
 mkdir 1_REFERENCE_GENOMES && cd 1_REFERENCE_GENOMES
 
-# Prepare Wolbachia reference genomes
-cd ../../../../data/reference-genomes
 
-for ref in wPip.fasta ABZA01.1.fsa_nt CTEH01.1.fsa_nt wAlbB.fna
+# Download Wolbachia reference genomes
+
+## wPipPel
+wget -q -O - "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=NC_010981.1&rettype=fasta" > wPip-PEL.fasta
+
+## wPipMol
+curl "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/723/225/GCA_000723225.2_Wolbachia_endosymbiont_wPip_Mol_of_Culex_molestus/GCA_000723225.2_Wolbachia_endosymbiont_wPip_Mol_of_Culex_molestus_genomic.fna.gz" | gunzip > wPip-MOL.fasta
+
+## wPipJHB
+curl "https://sra-download.ncbi.nlm.nih.gov/traces/wgs03/wgs_aux/AB/ZA/ABZA01/ABZA01.1.fsa_nt.gz" | gunzip > wPip-JHB.fasta
+
+
+# Prepare Wolbachia reference genomes for anvi'o
+
+for ref in wPip-PEL wPip-MOL wPip-JHB
 do
-# split name of reference
-name=`echo $ref | awk 'BEGIN{FS=".f"}{print $1}'`
 
-# simplify deflines in reference FASTA
-anvi-script-reformat-fasta $ref \
+  # split name of reference
+  name=`echo $ref.fasta | awk 'BEGIN{FS=".f"}{print $1}'`
+
+  # simplify deflines in reference FASTA
+  anvi-script-reformat-fasta $ref.fasta \
                            --simplify-names \
                            -o $name.fa
 
-# generate a contigs database
-anvi-gen-contigs-database -f $name.fa \
+  # generate a contigs database
+  anvi-gen-contigs-database -f $name.fa \
                           -o $name.db
 
-# run hmms, kegg, cogs and taxonomy
-anvi-run-hmms -c $name.db
-anvi-run-kegg-kofams -c $name.db --kegg-data-dir "/Users/hschrieke/opt/miniconda3/envs/anvio-7.1/lib/python3.6/site-packages/anvio/data/misc/KEGG" -T 12
-anvi-run-ncbi-cogs -c $name.db --cog-data-dir "/Users/hschrieke/opt/miniconda3/envs/anvio-7.1/lib/python3.6/site-packages/anvio/data/misc/COG" -T 12
-anvi-run-scg-taxonomy -c $name.db --scgs-taxonomy-data-dir "/Users/hschrieke/opt/miniconda3/envs/anvio-7.1/lib/python3.6/site-packages/anvio/data/misc/SCG_TAXONOMY/GTDB" -T 12
+  # run hmms, kegg, cogs and taxonomy
+  anvi-run-hmms -c $name.db
+  anvi-run-kegg-kofams -c $name.db --kegg-data-dir "/Users/hschrieke/opt/miniconda3/envs/anvio-7.1/lib/python3.6/site-packages/anvio/data/misc/KEGG" -T 12
+  anvi-run-ncbi-cogs -c $name.db --cog-data-dir "/Users/hschrieke/opt/miniconda3/envs/anvio-7.1/lib/python3.6/site-packages/anvio/data/misc/COG" -T 12
+  anvi-run-scg-taxonomy -c $name.db --scgs-taxonomy-data-dir "/Users/hschrieke/opt/miniconda3/envs/anvio-7.1/lib/python3.6/site-packages/anvio/data/misc/SCG_TAXONOMY/GTDB" -T 12
 done
 
-# Rename db files
-mv wPip.db wPip-PEL.db
-mv ABZA01.1.db wPip-JHB.db
-mv CTEH01.1.db wPip-MOL.db
 
 
-
-
-# PANGENOME
+## PANGENOMES
 
 # Create folder for Wolbachia pangenome output
-# mkdir ../../output/Metapan ../../output/Metapan/PAN && cd ../../output/Metapan/PAN
-# mkdir 1_REFERENCE_GENOMES && cd 1_REFERENCE_GENOMES
-# 
-# cd ../../../../data/reference-genomes
 
-cd ../../output/Metapan/PAN
+cd ../
 mkdir 2_WOLBACHIA_PAN && cd 2_WOLBACHIA_PAN
 
 ## Create a genome storage with internal and external genomes
@@ -104,7 +65,7 @@ anvi-gen-genomes-storage -i ../../../../metadata/metapan/all-internal.txt \
                          -o Wolbachia-all-PAN-GENOMES.db
 
 
-# Prepare genome name files 
+# Prepare genome name files
 
 ## Metapan
 for s in M11 O11 wPipPel
@@ -133,7 +94,7 @@ done
 rm genomes-list-references.txt
 
 
-# Compute pangenom for metapan and all metagenomes
+# Compute pangenome for metapan and all metagenomes
 for i in metapan all-metagenomes
 do
 anvi-pan-genome -g Wolbachia-all-PAN-GENOMES.db \

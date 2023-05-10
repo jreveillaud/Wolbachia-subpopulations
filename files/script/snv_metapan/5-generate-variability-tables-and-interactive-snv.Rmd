@@ -30,32 +30,38 @@ pre code {
 }
 ```
 
-# SNV tables
+# Generate SNV tables
 
-## samples of interest file
+## Set output directories and sample files
 
 ```{bash}
-mkdir ../../output/SNV ../../output/SNV/snv-tables ../../output/SNV/snv-tables/intra-MAGs ../../output/SNV/snv-tables/intra-MAGs/state-files ../../output/SNV/snv-tables/SAAVs ../../output/SNV/snv-tables/SCVs ../../output/SNV/snv-tables/indels
 
+# Create output directoties
+mkdir ../../output/SNV ../../output/SNV/snv-tables ../../output/SNV/snv-tables/intra-samples ../../output/SNV/snv-tables/intra-samples/state-files ../../output/SNV/snv-tables/SAAVs ../../output/SNV/snv-tables/SCVs ../../output/SNV/snv-tables/indels
+
+
+# Create sample files for variation at intra and inter-samples levels
 rm ../../output/SNV/snv-tables/sample-of-interest.txt
 
+## For intra-samples level
 for s in O03 M03 O07 M07 O11 M11 O12 M12
 do
 echo "$s" >> ../../output/SNV/snv-tables/sample-of-interest.txt
 done
 
+## For inter-samples level
 for s in O03 O07 O11 M11 O12
 do
 mkdir ../../output/SNV/snv-tables/${s}-as-reference
 cp ../../output/SNV/snv-tables/sample-of-interest.txt ../../output/SNV/snv-tables/${s}-as-reference/sample-of-interest.txt
-#cat ../../output/SNV/snv-tables/${s}-as-reference/sample-of-interest.txt
 done
 
 rm ../../output/SNV/snv-tables/sample-of-interest.txt 
 ```
 
 
-## SNV (INTER-MAGs - ALL METAGENOMES ON EACH METAGENOME AS REFERENCE)
+## Generate SNV tables at inter-samples variation level (All metagenomes mapped on each MAGs used as reference)
+
 ```{zsh engine.opts='-i'}
 conda activate anvio-7.1
 
@@ -81,7 +87,7 @@ do
                                  --engine AA \
                                  --include-split-names \
                                  --samples-of-interest ../../output/SNV/snv-tables/${s}-as-reference/sample-of-interest.txt \
-                                 -o ../../output/SNV/snv-tables/SAAVs/SAAV_variability_"$s"_inter-MAGs.txt
+                                 -o ../../output/SNV/snv-tables/SAAVs/SAAV_variability_"$s"_inter-samples.txt
       
     ## SCVs  
     anvi-gen-variability-profile -p ../../output/06_MERGED_references_mode/"$s"/PROFILE.db \
@@ -91,7 +97,7 @@ do
                                  --engine CDN \
                                  --include-split-names \
                                  --samples-of-interest ../../output/SNV/snv-tables/${s}-as-reference/sample-of-interest.txt \
-                                 -o ../../output/SNV/snv-tables/SCVs/SCV_variability_"$s"_inter-MAGs.txt
+                                 -o ../../output/SNV/snv-tables/SCVs/SCV_variability_"$s"_inter-samples.txt
     
     # ## indels
     # anvi-export-table ../../output/06_MERGED_references_mode/"$s"/PROFILE.db --table ../../output/SNV/snv-tables/indels/indels-"$s".txt
@@ -101,7 +107,7 @@ done
 conda deactivate
 ```
 
-### Filter SNV table (inter-MAGs)
+### Filter SNV table (inter-samples level)
 
 ```{r, warning=FALSE}
 require(tidyverse)
@@ -114,14 +120,14 @@ for(i in samples){
   snv_wt_outlier <- snv[snv$cov_outlier_in_contig==0 & snv$cov_outlier_in_split==0, ]
   
   # filter entropy
-  snv_entropy <- snv_wt_outlier[snv_wt_outlier$entropy>=0.2 & snv_wt_outlier$departure_from_reference>=0.2,]
+  snv_entropy <- snv_wt_outlier[snv_wt_outlier$entropy>=0.2 & snv_wt_outlier$departure_from_consensus>=0.2,]
   
   # save tables
   write.table(snv_entropy, paste0("../../output/SNV/snv-tables/", i, "-as-reference/variability-", i, "-filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
 }
 ```
 
-### Filter SCV table (inter-MAGs)
+### Filter SCV table (inter-samples level)
 
 ```{r, warning=FALSE}
 require(tidyverse)
@@ -130,36 +136,36 @@ samples <- c("O03", "O07", "O11", "O12", "M11")
 getwd()
 
 for(i in samples){
-  scv <- read.table(paste0("../../output/SNV/snv-tables/SCVs/SCV_variability_", i, "_inter-MAGs.txt"),
+  scv <- read.table(paste0("../../output/SNV/snv-tables/SCVs/SCV_variability_", i, "_inter-samples.txt"),
                      header=TRUE, fill=TRUE, sep="\t", quote = "")
   
   # filter entropy
-  scv_entropy <- scv[scv$entropy>=0.2 & scv$departure_from_reference>=0.2,]
+  scv_entropy <- scv[scv$entropy>=0.2 & scv$departure_from_consensus>=0.2,]
   
   # save tables
   write.table(scv_entropy, paste0("../../output/SNV/snv-tables/SCVs/SCV_variability_", i, "_filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
 }
 ```
 
-### Filter SAAV table (inter-MAGs)
+### Filter SAAV table (inter-samples level)
 
 ```{r, warning=FALSE}
 require(tidyverse)
 samples <- c("O03", "O07", "O11", "O12", "M11")
 
 for(i in samples){
-  saav <- read.table(paste0("../../output/SNV/snv-tables/SAAVs/SAAV_variability_", i, "_inter-MAGs.txt"),
+  saav <- read.table(paste0("../../output/SNV/snv-tables/SAAVs/SAAV_variability_", i, "_inter-samples.txt"),
                      header=TRUE, fill=TRUE, sep="\t", quote = "")
   
   # filter entropy
-  saav_entropy <- saav[saav$entropy>=0.2 & saav$departure_from_reference>=0.2,]
+  saav_entropy <- saav[saav$entropy>=0.2 & saav$departure_from_consensus>=0.2,]
   
   # save tables
   write.table(saav_entropy, paste0("../../output/SNV/snv-tables/SAAVs/SAAV_variability_", i, "_filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
 }
 ```
 
-## SNV (INTRA-MAGs - EACH METAGENOME ON EACH CORRESPONDING MAG)
+## Generate SNV tables at intra-samples variation level (each metagenome mapped on each corresponding MAG)
 
 ```{zsh engine.opts='-i'}
 conda activate anvio-7.1
@@ -168,14 +174,14 @@ conda activate anvio-7.1
 for s in O03 O07 O11 O12 M11
 do
     # ## SNVs
-    echo "$s" > ../../output/SNV/snv-tables/intra-MAGs/sample-of-interest-MAGs.txt
+    echo "$s" > ../../output/SNV/snv-tables/intra-samples/sample-of-interest-MAGs.txt
     anvi-gen-variability-profile -p ../../output/06_MERGED_references_mode/"$s"/PROFILE.db \
                                  -c ../../output/03_CONTIGS_references_mode/"$s"-contigs.db \
                                  -C Wolbachia \
                                  -b "$s" \
                                  --include-split-names \
-                                 --samples-of-interest ../../output/SNV/snv-tables/intra-MAGs/sample-of-interest-MAGs.txt \
-                                 -o ../../output/SNV/snv-tables/intra-MAGs/variability_"$s".txt
+                                 --samples-of-interest ../../output/SNV/snv-tables/intra-samples/sample-of-interest-MAGs.txt \
+                                 -o ../../output/SNV/snv-tables/intra-samples/variability_"$s".txt
     
     ## SAAVs
     anvi-gen-variability-profile -p ../../output/06_MERGED_references_mode/"$s"/PROFILE.db \
@@ -184,8 +190,8 @@ do
                                  -b "$s" \
                                  --engine AA \
                                  --include-split-names \
-                                 --samples-of-interest ../../output/SNV/snv-tables/intra-MAGs/sample-of-interest-MAGs.txt \
-                                 -o ../../output/SNV/snv-tables/SAAVs/SAAV_variability_"$s"_intra-MAGs.txt
+                                 --samples-of-interest ../../output/SNV/snv-tables/intra-samples/sample-of-interest-MAGs.txt \
+                                 -o ../../output/SNV/snv-tables/SAAVs/SAAV_variability_"$s"_intra-samples.txt
       
     ## SCVs  
     anvi-gen-variability-profile -p ../../output/06_MERGED_references_mode/"$s"/PROFILE.db \
@@ -194,22 +200,22 @@ do
                                  -b "$s" \
                                  --engine CDN \
                                  --include-split-names \
-                                 --samples-of-interest ../../output/SNV/snv-tables/intra-MAGs/sample-of-interest-MAGs.txt \
+                                 --samples-of-interest ../../output/SNV/snv-tables/intra-samples/sample-of-interest-MAGs.txt \
                                  --include-site-pnps \
-                                 -o ../../output/SNV/snv-tables/SCVs/SCV_variability_"$s"_intra-MAGs.txt
+                                 -o ../../output/SNV/snv-tables/SCVs/SCV_variability_"$s"_intra-samples.txt
 done
 
 # combine all variability information into a single file:
-head -n 1 ../../output/SNV/snv-tables/intra-MAGs/variability_O03.txt  > ../../output/SNV/snv-tables/intra-MAGs/variability-MAGs-all.txt
-cat ../../output/SNV/snv-tables/intra-MAGs/variability_* | grep -v entry_id >> ../../output/SNV/snv-tables/intra-MAGs/variability-MAGs-all.txt
+head -n 1 ../../output/SNV/snv-tables/intra-samples/variability_O03.txt  > ../../output/SNV/snv-tables/intra-samples/variability-MAGs-all.txt
+cat ../../output/SNV/snv-tables/intra-samples/variability_* | grep -v entry_id >> ../../output/SNV/snv-tables/intra-samples/variability-MAGs-all.txt
 
 # generate a text file with genome lenghts of Wolbachia and samples
 # from which they were generated:
-echo -e "metagenome\tgenome_length" > ../../output/SNV/snv-tables/intra-MAGs/genome-lengths.txt
+echo -e "metagenome\tgenome_length" > ../../output/SNV/snv-tables/intra-samples/genome-lengths.txt
 for s in M11 O03 O07 O11 O12
 do
     len=`sqlite3 ../../output/03_CONTIGS_references_mode/"$s"-contigs.db 'select value from self where key=="total_length";'`
-    echo -e "Culex_$s\t$len" >> ../../output/SNV/snv-tables/intra-MAGs/genome-lengths.txt
+    echo -e "Culex_$s\t$len" >> ../../output/SNV/snv-tables/intra-samples/genome-lengths.txt
 done
 
 conda deactivate
@@ -217,15 +223,16 @@ conda deactivate
 ```
 
 
-
-### Filter SNV table (intra-MAGs)
+### Filter SNV table (intra-samples level) and prepare layer 
 
 ```{r}
 require(tidyverse)
 samples <- c("O03", "O07", "O11", "O12", "M11")
 
+i <- "O11"
+
 for(i in samples){
-  snv <- read.table(paste0("/Volumes/Elements/Hiseq/metapangenomics/output/SNV/snv-tables/intra-MAGs/variability_", i, ".txt"), header=TRUE)
+  snv <- read.table(paste0("/Volumes/Elements/Hiseq/metapangenomics/output/SNV/snv-tables/intra-samples/variability_", i, ".txt"), header=TRUE)
   
   # # remove outliers snv
   snv_wt_outlier <- snv[snv$cov_outlier_in_contig==0 & snv$cov_outlier_in_split==0, ]
@@ -236,18 +243,17 @@ for(i in samples){
   # filter departure from consensus
   snv_dep <- snv_entropy[snv_entropy$departure_from_consensus>=0.2,]
   
-  # # prepare layers to add in profile.db of interactive
-  # snv_layers <- snv_entropy %>% select(c(entry_id, unique_pos_identifier, pos, pos_in_contig, split_name, in_coding_gene_call, coverage, entropy))
+  # prepare layers to add in profile.db of interactive
   snv_layers <- snv_entropy %>% select(c(entry_id, split_name, in_coding_gene_call, coverage, entropy))
   snv_layers$entry_id <- paste0("p_", sprintf("%08d", as.numeric(snv_layers$entry_id)))
   
   
   # write filtered snv table
   ## table for anvi-script-snvs-to-interactive
-  write.table(snv_dep, paste0("/Volumes/Elements/Hiseq/metapangenomics/output/SNV/snv-tables/intra-MAGs/variability-", i, "-filtered-2.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+    write.table(snv_dep, paste0("/Volumes/Elements/Hiseq/metapangenomics/output/SNV/snv-tables/intra-samples/variability-", i, "-filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
   
   ## layers to add in snvs-interactive
-  write.table(snv_layers, paste0("/Volumes/Elements/Hiseq/metapangenomics/output/SNV/snv-tables/intra-MAGs/variability-", i, "-layers.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(snv_layers, paste0("/Volumes/Elements/Hiseq/metapangenomics/output/SNV/snv-tables/intra-samples/variability-", i, "-layers.txt"), sep="\t", quote=FALSE, row.names=FALSE)
 
 }
   
@@ -255,7 +261,7 @@ for(i in samples){
 
 
 
-### Filter SCV table (intra-MAGs)
+### Filter SCV table (intra-samples level)
 
 ```{r}
 require(tidyverse)
@@ -263,7 +269,7 @@ require(tidyverse)
 samples <- c("O11","O03", "O07", "O12", "M11")
 
 for(i in samples){
-  scv <- read.table(paste0("/Volumes/Elements/Hiseq/metapangenomics/output/SNV/snv-tables/SCVs/SCV_variability_", i, "_intra-MAGs.txt"), header=TRUE, fill=TRUE)
+  scv <- read.table(paste0("/Volumes/Elements/Hiseq/metapangenomics/output/SNV/snv-tables/SCVs/SCV_variability_", i, "_intra-samples.txt"), header=TRUE, fill=TRUE)
   
   # filter entropy
   scv_entropy <- scv[scv$entropy>=0.2,]
@@ -271,13 +277,14 @@ for(i in samples){
   # filter departure from consensus
   scv_dep <- scv_entropy[scv_entropy$departure_from_consensus>=0.2,]
   
-  write.table(scv_dep, paste0("/Volumes/Elements/Hiseq/metapangenomics/output/SNV/snv-tables/SCVs/SCV_variability_", i, "_intra-MAGs_filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  # write table 
+  write.table(scv_dep, paste0("/Volumes/Elements/Hiseq/metapangenomics/output/SNV/snv-tables/SCVs/SCV_variability_", i, "_intra-samples_filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
 }
   
 ```
 
 
-### Filter SAAV table (intra-MAGs)
+### Filter SAAV table (intra-samples level)
 
 ```{r}
 require(tidyverse)
@@ -285,7 +292,7 @@ require(tidyverse)
 samples <- c("O11","O03", "O07", "O12", "M11")
 
 for(i in samples){
-  saav <- read.table(paste0("/Volumes/Elements/Hiseq/metapangenomics/output/SNV/snv-tables/SAAVs/SAAV_variability_", i, "_intra-MAGs.txt"), header=TRUE, fill=TRUE)
+  saav <- read.table(paste0("/Volumes/Elements/Hiseq/metapangenomics/output/SNV/snv-tables/SAAVs/SAAV_variability_", i, "_intra-samples.txt"), header=TRUE, fill=TRUE)
   
   # filter entropy
   saav_entropy <- saav[saav$entropy>=0.2,]
@@ -293,7 +300,8 @@ for(i in samples){
   # filter departure from consensus
   saav_dep <- saav_entropy[saav_entropy$departure_from_consensus>=0.2,]
   
-  write.table(saav_dep, paste0("/Volumes/Elements/Hiseq/metapangenomics/output/SNV/snv-tables/SAAVs/SAAV_variability_", i, "_intra-MAGs_filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  # write table
+  write.table(saav_dep, paste0("/Volumes/Elements/Hiseq/metapangenomics/output/SNV/snv-tables/SAAVs/SAAV_variability_", i, "_intra-samples_filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
 }
   
 ```
@@ -337,7 +345,7 @@ for(i in samples){
 ```{zsh engine.opts='-i'}
 conda activate anvio-7.1
 
-cd /Volumes/Elements/Hiseq/metapangenomics/output/SNV/snv-tables/intra-MAGs
+cd /Volumes/Elements/Hiseq/metapangenomics/output/SNV/snv-tables/intra-samples
 
 # for each sample
 for i in O03 O07 O11 O12 M11
@@ -345,10 +353,13 @@ do
 
   ## convert snv table to interactive
 
-  anvi-script-snvs-to-interactive variability-$i-filtered-2.txt \
+  # anvi-script-snvs-to-interactive variability-$i-filtered-2.txt \
+  #                                 -o ${i}_wolbachia_filtered \
+  #                                 --min-departure-from-consensus 0.2
+
+  anvi-script-snvs-to-interactive variability-$i-filtered.txt \
                                   -o ${i}_wolbachia_filtered \
                                   --min-departure-from-consensus 0.2
-
   ## add layers to interactive
   anvi-import-misc-data variability-$i-layers.txt \
                         -p ${i}_wolbachia_filtered/profile.db \
@@ -360,12 +371,12 @@ done
 
 ## Export the state files
 
-After draw a nice plot in interactive for O11, we can export the state file and adpapt him for each other sample
+After draw a nice plot in interactive for O11, we can export the state file and adpapt it for other samples
 
 ```{zsh eval=FALSE, engine.opts='-i', include=FALSE}
 conda activate anvio-7.1
 
-cd /Volumes/Elements/Hiseq/metapangenomics/output/SNV/snv-tables/intra-MAGs
+cd /Volumes/Elements/Hiseq/metapangenomics/output/SNV/snv-tables/intra-samples
 
 for i in O03 O07 O11 O12 M11
 do
