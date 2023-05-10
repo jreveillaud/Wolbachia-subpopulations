@@ -1,10 +1,10 @@
-This project describes the bioinformatic reproductible workflow associated to the paper "Multiple Wolbachia subpopulations co-occur in single Culex pipiens mosquitoes".
+This project describes the bioinformatic reproductible workflow associated to the paper "Multiple *Wolbachia* subpopulations co-occur in single *Culex pipiens* mosquitoes".
 
 # Anvi'o metagenomic workflows and binning to reconstruct Wolbachia genomes
 
 ## Download data 
 
-To explore the Wolbachia populations in single Culex pipiens midguts, you can download the six midgut metagenomes stored in ENA with the accession number PRJEB56379.
+To explore the *Wolbachia* populations in single *Culex pipiens* midguts, you can download the six midgut metagenomes stored in ENA with the accession number PRJEB56379.
 
 The sample names and correspoding ENA accession IDs are reported here:
 | Sample name | ENA sample accession |
@@ -85,8 +85,7 @@ The complete anvi'o metagenomics workflow results on the following folders:
 * `05_ANVIO_PROFILE`: Anvi’o single profiles for each sample
 * `06_MERGED`: Anvi’o merged profile databases for each assembly
 
-All the anvi'o merged profile databases are available at 10.5281/zenodo.7183277 (midguts) and XXX (ovaries*). 
-* will be added
+All the anvi'o merged profile databases from midgut and ovary samples are available at [10.5281/zenodo.7183277](10.5281/zenodo.7183277).
 
 
 ## Assembly
@@ -175,7 +174,7 @@ We used the anvi-cluster-contigs anvi'o program (with CONCOCT) to reconstruct ba
 
 ### Midguts
 
-Overall, we reconstructed a bacteria genome in only 1 midgut sample (M11) using a number of cluster = 5 for CONCOCT.
+Overall, we reconstructed a bacterial genome in only 1 midgut sample (M11) using a number of cluster = 5 for CONCOCT.
 
 ```
 anvi-cluster-contigs -p 06_MERGED/Culex_M11/PROFILE.db \
@@ -266,13 +265,13 @@ anvi-estimate-genome-completeness -c 03_CONTIGS/Culex_O12-contigs.db -p 06_MERGE
 
 ## Taxonomy 
 
-All the bacterial reconstructed genomes were assigned to Wolbachia (GTDB). 
+All the bacterial reconstructed genomes were assigned to *Wolbachia* (GTDB). 
 
 ## Refinement
 
-We used the anvi-refine function to manually refine our reconstructed genomes. To do that, we removed all the splits that do not correspond to Wolbachia.
+We used the anvi-refine program to manually refine our reconstructed genomes. To do that, we removed all the splits that do not correspond to *Wolbachia*.
 
-After refinement using the anvi-refine program, we obtained five Wolbachia MAGs:
+After refinement using the anvi-refine program, we obtained five *Wolbachia* MAGs:
 
 | Wolbachia MAG | % completion | % redundancy | num_splits | total length | % GC content |
 |:-------------:|:------------:|:------------:|:----------:|:------------:|:------------:|
@@ -282,7 +281,7 @@ After refinement using the anvi-refine program, we obtained five Wolbachia MAGs:
 | O07           | 91.55        | 0            | 143        | 1,340,038    | 34.4         |
 | O12           | 91.55        | 0            | 75         | 1,181,440    | 33.9         |
 
-The FASTA files for individual bin are availble at 10.5281/zenodo.7183304. 
+The FASTA files for individual bin are available at [10.5281/zenodo.7183304](10.5281/zenodo.7183304).
 
 
 # Explore the co-occurence of Wolbachia subpopulations accross metagenomes using the references-mode
@@ -300,20 +299,20 @@ The FASTA files for individual bin are availble at 10.5281/zenodo.7183304.
 
 ## Run the anvi'o metagenomics workflow using "references-mode"
 
-The references-mode includes the same steps described above but it also allows to map all the metagenomes (midguts and ovaries) on each Wolbachia MAG we reconstructed. This mapping is essential to study the metapangenomics and the variability among Wolbachia subpopulations in our metagenomes. 
+The references-mode includes the same steps described above but it also allows to map all the metagenomes (midguts and ovaries) on each *Wolbachia* MAG we reconstructed. This mapping is essential to study the metapangenomics and the variability among *Wolbachia* subpopulations in our metagenomes. 
 
 To run it:
 [run_metagenomics_ref_mode.sh](files/script/run_metagenomics_ref_mode.sh)
 
-The final anvi'o merged profile.db from references-mode are available at 10.5281/zenodo.7183324.
+The final anvi'o merged profile.db from references-mode are available at [10.5281/zenodo.7183324](10.5281/zenodo.7183324).
 
 
 ## Variability and (Meta)pangenomics
 
 To study the variability and metapangenomics, you can run these scripts:
 
-* [1-run-pangenome.sh](files/script/snv_metapan/1-run-pangenome.sh): Prepare Wolbachia MAGs contigs.db, Wolbachia reference genomes and run pangenomes.
-* [2-run-blast.sh](files/script/snv_metapan/2-run-blast.sh): Download the MLST + wsp gene sequences and blast them against Wolbachia MAGs contigs.db. 
+* [1-run-pangenome.sh](files/script/snv_metapan/1-run-pangenome.sh): Prepare *Wolbachia* MAGs contigs.db, Wolbachia reference genomes and run pangenomes.
+* [2-run-blast.sh](files/script/snv_metapan/2-run-blast.sh): Download the MLST + wsp gene sequences and blast them against *Wolbachia* MAGs contigs.db. 
 * [3-generate-coverage-data-for-GC.Rmd](files/script/snv_metapan/3-generate-coverage-data-for-GC.Rmd): Generate coverage values of each metagenome and MLST+wsp genes at Gene Clusters (GCs) level.
 * [4-add-coverage-data-to-pan.sh](files/script/snv_metapan/4-add-coverage-data-to-pan.sh): Add coverage values previously generated in pangenomes. 
 * [5-generate-variability-tables-and-interactive-snv.Rmd](files/script/snv_metapan/5-generate-variability-tables-and-interactive-snv.Rmd): Generate variability tables (Single Nucleotide Variants, Single Codon Variants, Single Amino Acid Variants), indels/insertion tables at intra-MAGs and inter-MAGs level and prepare interactive view of SNVs.
@@ -321,6 +320,6 @@ To study the variability and metapangenomics, you can run these scripts:
 * [7-select-SNV-SCV-SAAVs.R](files/script/snv_metapan/7-select-SNV-SCV-SAAVs.R): Select SCV and SAAV generated from only the filtered SNVs.
 * [8-merge_gene_cluster_SNV.R](files/script/snv_metapan/8-merge_gene_cluster_SNV.R): Identify shared SNVs, Shared Single copy Genes (SSG) from the Gene Cluster tables (pangenomics), link the SSG and SNVs informations to export it in SNV interactive databases.
 * [9-add-SSG-to-interactive-SNV.sh](files/script/snv_metapan/9-add-SSG-to-interactive-SNV.sh): Add SSG infos in snv interactive databases.
-* [10-SNV-figure-for-selected-splits.Rmd](files/script/snv_metapan/10-SNV-figure-for-selected-splits.Rmd): Generate SNV and gene figures for selected splits from Wolbachia MAG O11. We then used Inskape to create the final SNV figures for these splits. 
+* [10-SNV-figure-for-selected-splits.Rmd](files/script/snv_metapan/10-SNV-figure-for-selected-splits.Rmd): Generate SNV and gene figures for selected splits from *Wolbachia* MAG O11. We then used Inskape to create the final SNV figures for these splits. 
 
 
