@@ -352,3 +352,5 @@ To study the variability and metapangenomics, you can run these scripts:
 To run it:
 [run_metagenomics_ref_mode.sh](files/script/run_metagenomics_ref_mode.sh)
 
+The final anvi'o merged profile.db from references-mode are available at 10.5281/zenodo.7924651.
+
