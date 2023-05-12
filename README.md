@@ -1,6 +1,6 @@
 This project describes the bioinformatic reproductible workflow associated to the paper "Multiple *Wolbachia* subpopulations co-occur in single *Culex pipiens* mosquito organs".
 
-# Anvi'o metagenomic workflows and binning to reconstruct *Wolbachia* genomes
+# Anvi'o metagenomic workflow and binning to reconstruct *Wolbachia* genomes
 
 ## Download data 
 
