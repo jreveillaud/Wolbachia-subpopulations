@@ -87,6 +87,39 @@ The complete anvi'o metagenomics workflow results on the following folders:
 
 All the anvi'o merged profile databases from midgut and ovary samples are available at [10.5281/zenodo.7183277](10.5281/zenodo.7183277).
 
+## Estimation of host contamination (phyloflash)
+
+We used phyloflash 3.1.4 to estimate the host contamination. 
+
+```
+cd 01_QC && mkdir Phyloflash
+
+conda activate phyloflash-3.4.1
+
+for r1 in *_R1.fastq.gz
+do
+# copy the filename, r1, to a new file name, r2 and substitute R1 in the name with R2
+# this generates the name of the R2 file
+    r1=$(echo $r1 | sed 's|.*\/||')
+    r2=$r1
+    r2="${r1/_R1/_R2}"
+    echo "R1:$r1 and R2:$r2"
+    NAME=$r1
+    NAME="${NAME/-QUALITY_PASSED_R1.fastq.gz/}"
+    NAME="${NAME/Culex_/}"
+    echo "Name:$NAME"
+
+    cd Phyloflash
+    mkdir $NAME && cd $NAME
+
+    phyloFlash.pl -lib ${NAME} -read1 ../${r1} -read2 ../${r2} -readlength 150 -almosteverything -CPUs 12
+
+    cd ../../
+done
+```
+
+Then, you can plot the contamination rates using the following script : [phyloflash-plot.Rmd](files/script/phyloflash-plot.Rmd)
+
 
 ## Assembly
 

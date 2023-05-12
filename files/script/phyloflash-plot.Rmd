@@ -1,0 +1,99 @@
+---
+title: ""
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+---
+
+# Packages
+```{r, warning=FALSE, message=FALSE}
+require(tidyverse)
+require(reshape2)
+require(dplyr)
+require(ggpubr)
+```
+
+# Dataset before MGX (no filtration)
+
+## Import data
+```{r, warning=FALSE}
+path <- "/Volumes/Elements/Hiseq/07_Phyloflash"
+setwd(path)
+
+samples <- list.files() 
+samples <- samples[1:6]
+samples <- c("M01", "M09", "M03", "M07", "M11", "M12", "O03", "O07", "O11", "O12")
+dt <- data.frame()
+#i <- "M07"
+for(i in samples){
+  df <- read.table(paste0(path, "/",i, "/", i, ".phyloFlash/", i, ".phyloFlash.NTUabundance.csv"), sep=";", comment.char = '@')
+  df$Reads <- sub('.*,\\s*','', df$V4)
+  df <- df %>% select(c(V1, Reads))
+  colnames(df) <- c("Order", "Reads")
+  df$Reads <- df$Reads %>% as.numeric()
+  
+  df2 <- aggregate(df$Reads, by=list(Category=df$Order), FUN=sum) %>% t()
+  #df2 <- df2 %>% as.data.frame()
+  colnames(df2) <- df2[1,]
+  df2 <- df2[-1,]
+  df3 <- data.frame(lapply(df2, function(x) t(data.frame(x))))
+  
+  if("Archaea" %in% colnames(df3)==FALSE){
+    df3 <- df3 %>% mutate(Archaea = NA)
+  }
+  
+  samples2 <- sub('_.*$','', samples)
+  df3$sample <- i
+  
+  dt <- dt %>% rbind(df3)
+}
+
+levels(dt$Archaea) <- c(levels(dt$Archaea), "0")
+dt[is.na(dt)] <- 0
+
+dt$filtration <- "NO FILTRATION"
+
+rownames(dt) <- dt$sample
+dt$Eukaryota <- as.numeric(as.character(dt$Eukaryota))
+dt$Bacteria <- as.numeric(as.character(dt$Bacteria))
+dt$Archaea <- as.numeric(as.character(dt$Archaea))
+
+dt$Eukaryota_Percent <- (dt$Eukaryota/(dt$Eukaryota+dt$Archaea+dt$Bacteria))*100
+dt$Bacteria_Percent <- (dt$Bacteria/(dt$Eukaryota+dt$Archaea+dt$Bacteria))*100
+dt$Archaea_Percent <- (dt$Archaea/(dt$Eukaryota+dt$Archaea+dt$Bacteria))*100
+
+dt$condition <- "Individual"
+```
+
+## Plot
+
+```{r, warning=FALSE}
+levels(dt$sample %>% as.factor())
+dt <- dt %>% select(c(sample, Eukaryota_Percent, Bacteria_Percent, filtration, condition))
+colnames(dt)[2:3] <- c("Eukaryota", "Bacteria")
+table_plot <- dt %>% melt(id=c("sample", "filtration", "condition"))
+sample_order <- dt[order(dt$Eukaryota, decreasing = TRUE), "sample"]
+
+table_plot$sample <- factor(table_plot$sample, levels = sample_order)
+```
+
+```{r, warning=FALSE}
+p1 <- ggplot(table_plot, aes(x=sample, y=value, fill=variable)) +  
+  geom_col(position = "stack", color="white") +
+  labs(x = "Sample", y = "Reads distribution (%)", fill="Domain assigned")+
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1))+
+  facet_wrap(~condition, scales="free_y")+
+  coord_flip()+
+  geom_text(aes(label=ifelse(variable=="Eukaryota", round(value,2), "")), position = position_stack(vjust = 0.5), color="black", size=3.5)+
+  theme_bw()
+p1
+```
+
+# Save plot
+
+```{r, warning=FALSE}
+pdf(file = "phyloflash-wt-filtration.pdf", width = 8, height = 6)
+p1
+dev.off()
+```
