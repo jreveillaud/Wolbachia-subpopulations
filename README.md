@@ -116,6 +116,8 @@ do
 
     cd ../../
 done
+
+conda deactivate
 ```
 
 Then, you can plot the contamination rates using the following script : [phyloflash-plot.Rmd](files/script/phyloflash-plot.Rmd)
