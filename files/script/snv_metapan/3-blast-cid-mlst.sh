@@ -2,7 +2,7 @@
 source /Users/hschrieke/opt/miniconda3/etc/profile.d/conda.sh
 
 # Create output directory
-cd ../../output && mkdir genes genes/cid genes/mlst
+cd ../output && mkdir genes genes/cid genes/mlst
 
 
 # Download cid genes from Bonneau et al. 2018 (10.1038/s41467-017-02749-w) and Beckmann et al. 2013 (à vérifier)
@@ -45,7 +45,7 @@ cd .. && conda activate anvio-7.1
 
 for i in cid mlst
 do
-  anvi-get-sequences-for-gene-calls -c ../Metapan/PAN/1_REFERENCE_GENOMES/wPip-PEL.db \
+  anvi-get-sequences-for-gene-calls -c ../reference_genomes/wPip-PEL.db \
                                       -o ${i}/Wpip-PEL_genes.fa
 done
 

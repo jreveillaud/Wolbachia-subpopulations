@@ -1,0 +1,244 @@
+---
+title: ""
+author: Hans Schrieke and Julie Reveillaud
+date: "`r Sys.Date()`"
+output: 
+  rmdformats::readthedown:
+    lightbox: true
+    gallery: false
+    fig_caption: true
+    highlight: tango
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{css, echo=FALSE}
+.main-container {
+    max-width: 700px !important;
+}
+
+pre {
+  max-height: 800px !important;
+  overflow-y: auto !important;
+  overflow-x: scroll !important;
+}
+pre code {
+  white-space: pre
+}
+```
+
+# Get split coverage and SNVs from selected split of Wolbachia O11 MAGs
+```{zsh engine.opts='-i'}
+# activate conda environment
+conda activate anvio-7.1
+
+# move to work directory
+cd /Volumes/Elements/Hiseq/metagenomics_V2/output
+
+# create specific folder for outputs
+mkdir snv_figures
+
+
+for s in sample_name M11 O11 O03 O07 O12
+do
+echo "$s" >> snv_figures/sample_of_interest.txt
+done
+
+# Split from O11 
+
+# get coverage from splits of interest of O11 for SNV visualization
+anvi-get-split-coverages -p 06_MERGED_references_mode/O11/PROFILE.db \
+                         -c 03_CONTIGS_references_mode/O11-contigs.db \
+                         --split-name Culex_O11_000000098617_split_00001 \
+                         -o snv_figures/Culex_O11_000000098617_split_00001_coverage.txt
+
+anvi-get-split-coverages -p 06_MERGED_references_mode/O11/PROFILE.db \
+                         -c 03_CONTIGS_references_mode/O11-contigs.db \
+                         --gene-caller-id 755 \
+                         -o snv_figures/Culex_O11_000000098617_split_00001_gene_coverage.txt
+
+
+# generate SNV table from splits of interests of O11
+echo Culex_O11_000000098617_split_00001 > snv_figures/split_of_interest.txt
+
+anvi-gen-variability-profile -p 06_MERGED_references_mode/O11/PROFILE.db \
+                             -c 03_CONTIGS_references_mode/O11-contigs.db \
+                             --splits-of-interest snv_figures/split_of_interest.txt \
+                             --include-split-names \
+                             --include-contig-names \
+                             -o snv_figures/Culex_O11_000000098617_split_00001_SNVs.txt
+
+anvi-gen-variability-profile -p 06_MERGED_references_mode/O11/PROFILE.db \
+                             -c 03_CONTIGS_references_mode/O11-contigs.db \
+                             --gene-caller-ids 755 \
+                             --include-split-names \
+                             --include-contig-names \
+                             -o snv_figures/Culex_O11_000000098617_split_00001_gene_SNVs.txt
+
+
+# Split from O03
+
+# get coverage from splits of interest of O03 for SNV visualization
+anvi-get-split-coverages -p 06_MERGED_references_mode/O03/PROFILE.db \
+                         -c 03_CONTIGS_references_mode/O03-contigs.db \
+                         --split-name Culex_O03_000000128791_split_00001 \
+                         -o snv_figures/Culex_O03_000000128791_split_00001_coverage.txt
+
+anvi-get-split-coverages -p 06_MERGED_references_mode/O03/PROFILE.db \
+                         -c 03_CONTIGS_references_mode/O03-contigs.db \
+                         --gene-caller-id 589 \
+                         -o snv_figures/Culex_O03_000000128791_split_00001_gene_coverage.txt
+
+
+# generate SNV table from splits of interests of O03
+echo Culex_O03_000000128791_split_00001 > snv_figures/split_of_interest.txt
+
+anvi-gen-variability-profile -p 06_MERGED_references_mode/O03/PROFILE.db \
+                             -c 03_CONTIGS_references_mode/O03-contigs.db \
+                             --splits-of-interest snv_figures/split_of_interest.txt \
+                             --include-split-names \
+                             --include-contig-names \
+                             -o snv_figures/Culex_O03_000000128791_split_00001_SNVs.txt
+
+anvi-gen-variability-profile -p 06_MERGED_references_mode/O03/PROFILE.db \
+                             -c 03_CONTIGS_references_mode/O03-contigs.db \
+                             --gene-caller-ids 589 \
+                             --include-split-names \
+                             --include-contig-names \
+                             -o snv_figures/Culex_O03_000000128791_split_00001_gene_SNVs.txt
+
+
+```
+
+# Filter SNVs
+
+```{r, warning=FALSE, message=FALSE}
+# packages
+require(tidyverse)
+
+setwd("/Volumes/Elements/Hiseq/metagenomics_V2/output/snv_figures")
+
+# import SNV table
+splits <- c("Culex_O11_000000098617_split_00001", "Culex_O03_000000128791_split_00001")
+  
+for(i in splits){
+  snv <- read.table(paste0(i, "_SNVs.txt"), header=TRUE)
+  cov <- read.table(paste0(i, "_coverage.txt"), header=TRUE)
+
+  # filter the SNV table by removing the outliers
+  snv_wt_outlier <- snv[snv$cov_outlier_in_contig==0 & snv$cov_outlier_in_split==0, ]
+
+  # filter the SNV table by entropy and departure from consensus
+  snv_entropy <- snv_wt_outlier[snv_wt_outlier$entropy>=0.2,]
+  snv_dep <- snv_entropy[snv_entropy$departure_from_consensus>=0.2,]
+
+  # export snv tables
+  write.table(snv_wt_outlier, paste0(i, "_SNVs_wt_outliers.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(snv_dep, paste0(i, "_SNVs_filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(cov, paste0(i, "_coverage.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+}
+
+
+
+splits <- c("Culex_O11_000000098617_split_00001", "Culex_O03_000000128791_split_00001")
+
+for(i in splits){
+  snv <- read.table(paste0(i, "_gene_SNVs.txt"), header=TRUE)
+  cov <- read.table(paste0(i, "_gene_coverage.txt"), header=TRUE)
+  
+  cov$gene_caller_id <- i
+  colnames(cov)[3] <- "split_name"
+
+  # filter the SNV table by removing the outliers
+  snv_wt_outlier <- snv[snv$cov_outlier_in_contig==0 & snv$cov_outlier_in_split==0, ]
+
+  # filter the SNV table by entropy and departure from consensus
+  snv_entropy <- snv_wt_outlier[snv_wt_outlier$entropy>=0.2,]
+  snv_dep <- snv_entropy[snv_entropy$departure_from_consensus>=0.2,]
+
+  # export snv tables
+  write.table(snv_wt_outlier, paste0(i, "_gene_SNVs_wt_outliers.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(snv_dep, paste0(i, "_gene_SNVs_filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(cov, paste0(i, "_gene_coverage.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+}
+
+```
+
+# Generate figures with filtered SNV tables
+```{zsh engine.opts='-i'}
+# activate conda environment
+conda activate anvio-7.1
+
+# move to work directory
+cd /Volumes/Elements/Hiseq/metagenomics_V2/output/snv_figures
+
+# for split in Culex_O11_000000098617_split_00001_gene
+for split in Culex_O11_000000098617_split_00001 Culex_O11_000000098617_split_00001_gene 
+do
+
+# generate pdf of split of interest (without SNVs)                        
+anvi-script-visualize-split-coverages -i ${split}_coverage.txt \
+                                      -o ${split}_inspect.pdf \
+                                      -m 600
+
+# generate pdf of splits of interest with SNVs
+anvi-script-visualize-split-coverages -i ${split}_coverage.txt \
+                                      -o ${split}_inspect_SNV.pdf \
+                                      --snv-data ${split}_SNVs.txt \
+                                      -s sample_of_interest.txt \
+                                      -m 600
+
+# generate pdf of splits of interest with non-outliers SNVs
+anvi-script-visualize-split-coverages -i ${split}_coverage.txt \
+                                      -o ${split}_inspect_SNV_wt_outliers.pdf \
+                                      --snv-data ${split}_SNVs_wt_outliers.txt \
+                                      -s sample_of_interest.txt \
+                                      -m 600
+                                      
+# generate pdf of splits of interest with filtered SNVs
+anvi-script-visualize-split-coverages -i ${split}_coverage.txt \
+                                      -o ${split}_inspect_SNV_filtered.pdf \
+                                      --snv-data ${split}_SNVs_filtered.txt \
+                                      -s sample_of_interest.txt \
+                                      -m 600
+
+done
+
+
+
+for split in Culex_O03_000000128791_split_00001 Culex_O03_000000128791_split_00001_gene 
+do
+
+# generate pdf of split of interest (without SNVs)                        
+anvi-script-visualize-split-coverages -i ${split}_coverage.txt \
+                                      -o ${split}_inspect.pdf \
+                                      -m 800
+
+# generate pdf of splits of interest with SNVs
+anvi-script-visualize-split-coverages -i ${split}_coverage.txt \
+                                      -o ${split}_inspect_SNV.pdf \
+                                      --snv-data ${split}_SNVs.txt \
+                                      -s sample_of_interest.txt \
+                                      -m 800
+
+# generate pdf of splits of interest with non-outliers SNVs
+anvi-script-visualize-split-coverages -i ${split}_coverage.txt \
+                                      -o ${split}_inspect_SNV_wt_outliers.pdf \
+                                      --snv-data ${split}_SNVs_wt_outliers.txt \
+                                      -s sample_of_interest.txt \
+                                      -m 800
+                                      
+# generate pdf of splits of interest with filtered SNVs
+anvi-script-visualize-split-coverages -i ${split}_coverage.txt \
+                                      -o ${split}_inspect_SNV_filtered.pdf \
+                                      --snv-data ${split}_SNVs_filtered.txt \
+                                      -s sample_of_interest.txt \
+                                      -m 800
+
+done
+
+```

@@ -1,0 +1,194 @@
+---
+title: "Coverage analysis on genes within Wolbachia O11 MAG"
+author: "Hans SCHRIEKE"
+date: '2023-07-03'
+output:
+  html_document:
+    code_folding: show
+---
+
+
+# Path and packages
+
+```{r, echo=FALSE, warning=FALSE}
+require(tidyverse)
+require(ggplot2)
+```
+
+## Make dataframe 
+
+```{r, echo=FALSE}
+
+# Import summary from pangenomics analysis including all the Wolbachia MAGs
+GC <- read.table("Wolbachia_gene_clusters_summary.txt", header=TRUE, fill=TRUE, sep="\t", quote = "")
+GC[GC$SCG==0, "SCG"] <- "No wSCG"
+GC[GC$SCG==1, "SCG"] <- "wSCG"
+GC$SCG <- as.factor(GC$SCG)
+levels(GC$SCG)
+GC$SCG <- factor(GC$SCG, levels=c("wSCG", "No wSCG"))
+
+
+GC_M11 <- GC[GC$genome_name=="M11",]
+GC_O11 <- GC[GC$genome_name=="O11",]
+GC_O03 <- GC[GC$genome_name=="O03",]
+GC_O07 <- GC[GC$genome_name=="O07",]
+GC_O12 <- GC[GC$genome_name=="O12",]
+
+
+# Import coverage values for each gene of Wolbachia O11 MAG
+genes_M11 <- read.table("OUTPUT-genes-M11.txt", sep="\t", header=T)
+genes_O11 <- read.table("OUTPUT-genes-O11.txt", sep="\t", header=T)
+genes_O03 <- read.table("OUTPUT-genes-O03.txt", sep="\t", header=T)
+genes_O07 <- read.table("OUTPUT-genes-O07.txt", sep="\t", header=T)
+genes_O12 <- read.table("OUTPUT-genes-O12.txt", sep="\t", header=T)
+
+# Merge it to SCG infos
+genes_M11 <- genes_M11 %>% merge(GC_M11 %>% select(c(gene_callers_id, SCG, COG20_FUNCTION)), by="gene_callers_id", all.x = T)
+genes_O11 <- genes_O11 %>% merge(GC_O11 %>% select(c(gene_callers_id, SCG, COG20_FUNCTION)), by="gene_callers_id", all.x = T)
+genes_O03 <- genes_O03 %>% merge(GC_O03 %>% select(c(gene_callers_id, SCG, COG20_FUNCTION)), by="gene_callers_id", all.x = T)
+genes_O07 <- genes_O07 %>% merge(GC_O07 %>% select(c(gene_callers_id, SCG, COG20_FUNCTION)), by="gene_callers_id", all.x = T)
+genes_O12 <- genes_O12 %>% merge(GC_O12 %>% select(c(gene_callers_id, SCG, COG20_FUNCTION)), by="gene_callers_id", all.x = T)
+
+# Annotate genes of interest (cidA, ankyrin, radC)
+genes_O11_marker <- genes_O11
+genes_O11_marker[genes_O11_marker$gene_callers_id=="362", "Annotation"] <- "cidA"
+genes_O11_marker[genes_O11_marker$gene_callers_id=="755", "Annotation"] <- "ankyrin"
+genes_O11_marker[genes_O11_marker$gene_callers_id=="654", "Annotation"] <- "radC"
+genes_O11_marker <- genes_O11_marker[!is.na(genes_O11_marker$Annotation),]
+
+```
+
+# Plots 
+
+
+```{r, echo=FALSE}
+
+theme_set(theme_bw())
+
+p <- ggplot(data = genes_M11, aes(x=gene_callers_id, y=q2q3_cov)) + 
+  geom_point(size=1.5, color='black') +
+  theme(legend.position="bottom", 
+        axis.text.x = element_text(angle = 90, hjust = 1))+
+  facet_wrap(~SCG, ncol=2)+
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        plot.title = ggtext::element_markdown())+
+  labs(title="*Wolbachia* M11 genes")
+p
+
+median(genes_M11[genes_M11$SCG=="wSCG", "q2q3_cov"])
+median(genes_M11[genes_M11$SCG=="No wSCG", "q2q3_cov"])
+
+var(genes_M11[genes_M11$SCG=="wSCG", "q2q3_cov"])
+var(genes_M11[genes_M11$SCG=="No wSCG", "q2q3_cov"])
+```
+
+
+```{r, echo=FALSE}
+
+theme_set(theme_bw())
+
+p <- ggplot(data = genes_O11, aes(x=gene_callers_id, y=q2q3_cov)) + 
+  geom_point(size=1.5, color='black') +
+  geom_point(data=genes_O11_marker, aes(x=gene_callers_id, y=q2q3_cov, color=Annotation), size=2)+
+  scale_color_manual(values=c("red", "cyan", "green")) +
+  theme(legend.position="bottom", 
+        axis.text.x = element_text(angle = 90, hjust = 1))+
+  facet_wrap(~SCG, ncol=2)+
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        plot.title = ggtext::element_markdown())+
+  labs(title="*Wolbachia* O11 genes")
+p
+
+```
+
+
+```{r, echo=FALSE}
+
+theme_set(theme_bw())
+
+p <- ggplot(data = genes_O03, aes(x=gene_callers_id, y=q2q3_cov)) + 
+  geom_point(size=1.5, color='black') +
+  theme(legend.position="bottom", 
+        axis.text.x = element_text(angle = 90, hjust = 1))+
+  facet_wrap(~SCG, ncol=2)+
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        plot.title = ggtext::element_markdown())+
+  labs(title="*Wolbachia* O03 genes")
+p
+
+```
+
+
+```{r, echo=FALSE}
+
+theme_set(theme_bw())
+
+p <- ggplot(data = genes_O07, aes(x=gene_callers_id, y=q2q3_cov)) + 
+  geom_point(size=1.5, color='black') +
+  theme(legend.position="bottom", 
+        axis.text.x = element_text(angle = 90, hjust = 1))+
+  facet_wrap(~SCG, ncol=2)+
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        plot.title = ggtext::element_markdown())+
+  labs(title="*Wolbachia* O07 genes")
+p
+
+```
+
+
+```{r, echo=FALSE}
+
+theme_set(theme_bw())
+
+p <- ggplot(data = genes_O12, aes(x=gene_callers_id, y=q2q3_cov)) + 
+  geom_point(size=1.5, color='black') +
+  theme(legend.position="bottom", 
+        axis.text.x = element_text(angle = 90, hjust = 1))+
+  facet_wrap(~SCG, ncol=2)+
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        plot.title = ggtext::element_markdown())+
+  labs(title="*Wolbachia* O12 genes")
+p
+
+```
+```{r, echo=FALSE}
+df <- genes_M11 %>% rbind(genes_O03, genes_O07, genes_O11, genes_O12)
+
+# remove outliers
+df <- test[test$q2q3_cov!=24620,]
+
+theme_set(theme_bw())
+
+p <- ggplot(data = df, aes(x=gene_callers_id, y=q2q3_cov)) + 
+  geom_point(size=1, color='black') +
+  theme(legend.position="bottom", 
+        axis.text.x = element_text(angle = 90, hjust = 1))+
+  facet_wrap(~SCG+sample, ncol=5, scales="free_x")+
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        plot.title = ggtext::element_markdown())+
+  labs(title="*Wolbachia* *w*SCG")
+p
+
+tiff("cov_SCG.tiff", units="in", width=10, height=5, res=300)
+p
+dev.off()
+```
+
+
+# Write dataframes
+```{r, echo=FALSE}
+
+write.table(genes_M11, "M11-genes-SCG.txt", sep="\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
+write.table(genes_O11_marker, "O11-genes-SCG.txt", sep="\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
+write.table(genes_O03, "O03-genes-SCG.txt", sep="\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
+write.table(genes_O07, "O07-genes-SCG.txt", sep="\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
+write.table(genes_O12, "O12-genes-SCG.txt", sep="\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
+
+```
+

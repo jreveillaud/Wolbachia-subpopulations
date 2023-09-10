@@ -1,0 +1,186 @@
+---
+title: "Untitled"
+author: "Hans SCHRIEKE"
+date: '2023-08-29'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Create copies of DBS for each sample
+
+```{zsh engine.opts='-i'}
+cd ../output/
+mkdir dbs_for_plots && cd dbs_for_plots
+
+for i in M11 O03 O07 O11 O12
+do
+
+mkdir ${i}_raw ${i}_wt_outliers ${i}_filtered
+
+cp ../03_CONTIGS_references_mode/${i}-contigs.db ${i}_raw 
+cp ../03_CONTIGS_references_mode/${i}-contigs.db ${i}_wt_outliers
+cp ../03_CONTIGS_references_mode/${i}-contigs.db ${i}_filtered
+
+cp ../06_MERGED_references_mode/${i}/PROFILE.db ${i}_raw 
+cp ../06_MERGED_references_mode/${i}/PROFILE.db ${i}_wt_outliers
+cp ../06_MERGED_references_mode/${i}/PROFILE.db ${i}_filtered
+
+cp ../06_MERGED_references_mode/${i}/AUXILIARY-DATA.db ${i}_raw 
+cp ../06_MERGED_references_mode/${i}/AUXILIARY-DATA.db ${i}_wt_outliers
+cp ../06_MERGED_references_mode/${i}/AUXILIARY-DATA.db ${i}_filtered 
+
+done
+```
+
+# Create CSV files to update SNV tables in databases
+
+```{r}
+setwd("../output/dbs_for_plots")
+require(tidyverse)
+samples <- c("O03", "O07", "O11", "O12", "M11")
+
+for(i in samples){
+  
+  # without outliers SNVs
+  
+  df <- read.table(paste0("../variability/SNV_", i, ".txt"), header=TRUE, fill=TRUE, sep="\t", quote = "")
+  df <- df[df$cov_outlier_in_contig==0 & df$cov_outlier_in_split==0, ]
+  
+  df <- df %>% select(c(sample_id, 
+                        split_name, 
+                        pos, 
+                        pos_in_contig, 
+                        corresponding_gene_call, 
+                        in_noncoding_gene_call, 
+                        in_coding_gene_call, 
+                        base_pos_in_codon, 
+                        codon_order_in_gene, 
+                        coverage, 
+                        cov_outlier_in_split, 
+                        cov_outlier_in_contig, 
+                        departure_from_reference, 
+                        competing_nts, 
+                        reference, 
+                        A, 
+                        C, 
+                        G, 
+                        T, 
+                        N))
+  
+  write.table(df, paste0(i, "_wt_outliers/SNV_wt_outliers_for_dbs.csv"), sep=",", quote=FALSE, row.names=FALSE, col.names = FALSE)
+    
+  
+  # filtered
+  df <- read.table(paste0("../variability/SNV_", i, "_filtered_SCG.txt"), header=TRUE, fill=TRUE, sep="\t", quote = "")
+  
+
+  
+  df <- df %>% select(c(sample_id, 
+                        split_name, 
+                        pos, 
+                        pos_in_contig, 
+                        corresponding_gene_call, 
+                        in_noncoding_gene_call, 
+                        in_coding_gene_call, 
+                        base_pos_in_codon, 
+                        codon_order_in_gene, 
+                        coverage, 
+                        cov_outlier_in_split, 
+                        cov_outlier_in_contig, 
+                        departure_from_reference, 
+                        competing_nts, 
+                        reference, 
+                        A, 
+                        C, 
+                        G, 
+                        T, 
+                        N))
+  
+  write.table(df, paste0(i, "_filtered/SNV_filtered_for_dbs.csv"), sep=",", quote=FALSE, row.names=FALSE, col.names = FALSE)
+}
+
+```
+
+# Update SNV tables in each db
+
+```{zsh engine.opts='-i'}
+cd ../output/dbs_for_plots
+
+
+# wt outliers
+
+for i in M11 O03 O07 O11 O12
+
+do
+
+cd ${i}_wt_outliers
+
+sqlite3 PROFILE.db  "DROP TABLE variable_nucleotides;"
+
+sqlite3 PROFILE.db  "CREATE TABLE variable_nucleotides (sample_id text, split_name text, pos numeric, pos_in_contig numeric, corresponding_gene_call numeric, in_noncoding_gene_call numeric, in_coding_gene_call numeric, base_pos_in_codon numeric, codon_order_in_gene numeric, coverage numeric, cov_outlier_in_split bool, cov_outlier_in_contig bool, departure_from_reference numeric, competing_nts text, reference text, A numeric, C numeric, G numeric, T numeric, N numeric);"
+
+sqlite3 -csv PROFILE.db ".import SNV_wt_outliers_for_dbs.csv variable_nucleotides"
+
+cd ..
+
+done
+
+
+# filtered
+
+for i in M11 O03 O07 O11 O12
+
+do
+
+cd ${i}_filtered
+
+sqlite3 PROFILE.db  "DROP TABLE variable_nucleotides;"
+
+sqlite3 PROFILE.db  "CREATE TABLE variable_nucleotides (sample_id text, split_name text, pos numeric, pos_in_contig numeric, corresponding_gene_call numeric, in_noncoding_gene_call numeric, in_coding_gene_call numeric, base_pos_in_codon numeric, codon_order_in_gene numeric, coverage numeric, cov_outlier_in_split bool, cov_outlier_in_contig bool, departure_from_reference numeric, competing_nts text, reference text, A numeric, C numeric, G numeric, T numeric, N numeric);"
+
+sqlite3 -csv PROFILE.db ".import SNV_filtered_for_dbs.csv variable_nucleotides"
+
+cd ..
+
+done
+
+```
+
+
+# Interactive
+
+```{zsh eval=FALSE, engine.opts='-i', include=FALSE}
+
+# O11
+
+cd /Volumes/Elements/Hiseq/metagenomics_V2/output/dbs_for_plots/O11_raw
+conda activate anvio-7.1
+anvi-interactive -p PROFILE.db -c O11-contigs.db -b O11 --show-all-layers
+
+cd /Volumes/Elements/Hiseq/metagenomics_V2/output/dbs_for_plots/O11_wt_outliers
+conda activate anvio-7.1
+anvi-interactive -p PROFILE.db -c O11-contigs.db -b O11 --show-all-layers
+
+cd /Volumes/Elements/Hiseq/metagenomics_V2/output/dbs_for_plots/O11_filtered
+conda activate anvio-7.1
+anvi-interactive -p PROFILE.db -c O11-contigs.db -b O11 --show-all-layers
+
+
+# O03
+
+cd /Volumes/Elements/Hiseq/metagenomics_V2/output/dbs_for_plots/O03_raw
+conda activate anvio-7.1
+anvi-interactive -p PROFILE.db -c O03-contigs.db -b O03 --show-all-layers
+
+cd /Volumes/Elements/Hiseq/metagenomics_V2/output/dbs_for_plots/O03_wt_outliers
+conda activate anvio-7.1
+anvi-interactive -p PROFILE.db -c O03-contigs.db -b O03 --show-all-layers
+
+cd /Volumes/Elements/Hiseq/metagenomics_V2/output/dbs_for_plots/O03_filtered
+conda activate anvio-7.1
+anvi-interactive -p PROFILE.db -c O03-contigs.db -b O03 --show-all-layers
+```
+

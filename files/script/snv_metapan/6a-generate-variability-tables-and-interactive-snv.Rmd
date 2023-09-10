@@ -1,0 +1,478 @@
+---
+title: "SNV Analysis in Wolbachia from midguts and ovaries mosquitoes "
+author: Hans Schrieke and Julie Reveillaud
+date: "`r Sys.Date()`"
+output: 
+  rmdformats::readthedown:
+    lightbox: true
+    gallery: false
+    fig_caption: true
+    highlight: tango
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{css, echo=FALSE}
+.main-container {
+    max-width: 700px !important;
+}
+
+pre {
+  max-height: 800px !important;
+  overflow-y: auto !important;
+  overflow-x: scroll !important;
+}
+pre code {
+  white-space: pre
+}
+```
+
+# Set output directories and sample files
+
+```{bash}
+
+# Create output directoties
+mkdir ../output/variability
+
+
+# Create sample files for variation at intra and inter-samples levels
+rm ../output/variability/sample-of-interest.txt
+
+for s in O03 O07 O11 M11 O12
+do
+echo "$s" >> ../output/variability/sample-of-interest.txt
+done
+
+```
+
+
+# Generate SNV tables at inter-samples variation level (All metagenomes mapped on each MAGs used as reference)
+
+```{zsh engine.opts='-i'}
+conda activate anvio-7.1
+
+for s in O03 O07 O11 M11 O12
+do
+
+    ## SNVs
+    anvi-gen-variability-profile -p ../output/06_MERGED_references_mode/${s}/PROFILE.db  \
+                                 -c ../output/03_CONTIGS_references_mode/${s}-contigs.db \
+                                 -C Wolbachia \
+                                 -b ${s} \
+				                         --samples-of-interest ../output/variability/sample-of-interest.txt \
+			                           --include-split-names \
+                                 --include-contig-names \
+                                 --compute-gene-coverage-stats \
+                                 -o ../output/variability/SNV_${s}.txt
+
+    ## SAAVs
+    anvi-gen-variability-profile -p ../output/06_MERGED_references_mode/${s}/PROFILE.db \
+                                 -c ../output/03_CONTIGS_references_mode/${s}-contigs.db \
+                                 -C Wolbachia \
+                                 -b ${s} \
+                                 --engine AA \
+                                 --include-split-names \
+                                 --samples-of-interest ../output/variability/sample-of-interest.txt \
+                                 -o ../output/variability/SAAV_${s}.txt
+      
+    ## SCVs  
+    anvi-gen-variability-profile -p ../output/06_MERGED_references_mode/${s}/PROFILE.db \
+                                 -c ../output/03_CONTIGS_references_mode/${s}-contigs.db \
+                                 -C Wolbachia \
+                                 -b ${s} \
+                                 --engine CDN \
+                                 --include-split-names \
+                                 --samples-of-interest ../output/variability/sample-of-interest.txt \
+                                 --include-site-pnps \
+                                 -o ../output/variability/SCV_${s}.txt
+
+done
+
+conda deactivate
+```
+
+
+# Filter SNV table
+
+```{r, warning=FALSE}
+require(tidyverse)
+samples <- c("O03", "O07", "O11", "O12", "M11")
+
+gene_clusters <- read.table("../output/pangenomics/Wolbachia-all-PAN-SUMMARY/Wolbachia_gene_clusters_summary.txt", header=TRUE, fill=TRUE, sep="\t", quote = "")
+mlst <- read.table("../output/metapangenomics/coverages-for-gene-clusters.txt", header=TRUE, fill=TRUE, sep="\t", quote = "")
+mlst <- mlst %>% select(c(1:9))
+
+# inter-sample level
+for(i in samples){
+  snv <- read.table(paste0("../output/variability/SNV_", i,".txt"), header=TRUE)
+  
+  # raw intra-sample table 
+  snv_intra <- snv[snv$sample==i, ]
+  
+  # test filtration only on entropy / departure 
+  # snv_test <- snv_intra[snv_intra$entropy>=0.2 & snv_intra$departure_from_consensus>=0.2,]
+  
+  # remove outliers snv
+  snv_wt_outlier <- snv[snv$cov_outlier_in_contig==0 & snv$cov_outlier_in_split==0, ]
+  
+  # filter entropy
+  snv_entropy <- snv_wt_outlier[snv_wt_outlier$entropy>=0.2 & snv_wt_outlier$departure_from_consensus>=0.2,]
+  
+  # prepare layers to add in profile.db of interactive
+  snv_layers <- snv_entropy
+  snv_layers$entry_id <- paste0("p_", sprintf("%08d", as.numeric(snv_layers$unique_pos)))
+  
+  # add SCG info
+  gene_clusters_sample <- gene_clusters[gene_clusters$genome_name==i,]
+  colnames(gene_clusters_sample)[5] <- "corresponding_gene_call"
+  snv_layers <- snv_layers %>% merge(gene_clusters_sample, by="corresponding_gene_call", all.x = TRUE)
+  snv_layers$corresponding_gene_call <- snv_layers$corresponding_gene_call %>% as.character()
+  snv_layers <- snv_layers %>% select(c(entry_id, everything()))
+  
+  # add MLST + wsp + cid info
+  snv_layers <- snv_layers %>% merge(mlst, by="gene_cluster_id", all.x = TRUE)
+  
+  # intra-sample
+  snv_entropy_sample <- snv_entropy[snv_entropy$sample==i, ]
+  snv_layers_sample <- snv_layers[snv_layers$sample==i, ]
+  
+  # change in coding gene call layer
+  snv_layers_sample[snv_layers_sample$corresponding_gene_call != -1 & snv_layers_sample$in_coding_gene_call==0, "in_coding_gene_call"] <- 2
+  snv_layers_sample$gene_coding <- snv_layers_sample$in_coding_gene_call %>% as.character() %>% as.factor()
+  snv_layers_sample$gene_coding %>% levels()
+  levels(snv_layers_sample$gene_coding) <- c("no coding gene", "coding gene", "partial gene")
+  
+  
+  # change SCG layer
+  snv_layers_sample$SCG_proper <- snv_layers_sample$SCG%>% as.character() %>% as.factor()
+  levels(snv_layers_sample$SCG_proper) <- c("No", "Yes", "Out of gene")
+  snv_layers_sample[is.na(snv_layers_sample$SCG_proper), "SCG_proper"] <- "Out of gene"
+  
+  snv_layers_sample_reduced <- snv_layers_sample %>% select(c(entry_id, in_coding_gene_call, gene_coding, corresponding_gene_call, entropy, coverage, in_coding_gene_call, SCG, SCG_proper, COG20_FUNCTION,
+                                                              WO_assignmnent, cid_Bonneau_2018, mlst_wsp))
+  
+  snv_layers_SCG <- snv_layers[!is.na(snv_layers$SCG), ]
+  snv_layers_SCG <- snv_layers_SCG[snv_layers_SCG$SCG==1, ]
+  
+  # save tables
+  write.table(snv_intra, paste0("../output/variability/SNV_", i,"_intra.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(snv_entropy, paste0("../output/variability/SNV_", i,"_filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(snv_layers, paste0("../output/variability/SNV_", i,"_filtered_SCG.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(snv_layers_SCG, paste0("../output/variability/SNV_", i, "_filtered_only_SCG.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(snv_entropy_sample, paste0("../output/variability/SNV_", i,"_intra_filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(snv_layers_sample, paste0("../output/variability/SNV_", i, "_intra_filtered_SCG.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(snv_layers_sample_reduced, paste0("../output/variability/SNV_", i, "_intra_filtered_SCG_reduced.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+
+}
+```
+
+### Filter SCV table
+
+```{r, warning=FALSE}
+require(tidyverse)
+samples <- c("O03", "O07", "O11", "O12", "M11")
+
+getwd()
+
+# inter-sample level
+
+for(i in samples){
+  scv <- read.table(paste0("../output/variability/SCV_", i,".txt"),
+                     header=TRUE, fill=TRUE, sep="\t", quote = "")
+  
+  # raw intra-sample table 
+  scv_intra <- scv[scv$sample==i, ]
+  
+  # filter entropy
+  scv_entropy <- scv[scv$entropy>=0.2 & scv$departure_from_consensus>=0.2,]
+  
+  # prepare layers to add in profile.db of interactive
+  scv_layers <- scv_entropy
+  scv_layers$entry_id <- paste0("p_", sprintf("%08d", as.numeric(scv_layers$entry_id)))
+  
+  # add SCG info
+  gene_clusters_sample <- gene_clusters[gene_clusters$genome_name==i,]
+  colnames(gene_clusters_sample)[5] <- "corresponding_gene_call"
+  scv_layers <- scv_layers %>% merge(gene_clusters_sample, by="corresponding_gene_call", all.x = TRUE)
+  scv_layers$corresponding_gene_call <- scv_layers$corresponding_gene_call %>% as.character()
+  scv_layers <- scv_layers %>% select(c(entry_id, everything()))
+  
+  # add MLST + wsp + cid info
+  scv_layers <- scv_layers %>% merge(mlst, by="gene_cluster_id", all.x = TRUE)
+  
+  # intra-sample
+  scv_entropy_sample <- scv_entropy[scv_entropy$sample==i, ]
+  scv_layers_sample <- scv_layers[scv_layers$sample==i, ]
+  
+  scv_layers_SCG <- scv_layers[!is.na(scv_layers$SCG), ]
+  scv_layers_SCG <- scv_layers_SCG[scv_layers_SCG$SCG==1, ]
+  
+  # save tables
+  write.table(scv_intra, paste0("../output/variability/SCV_", i,"_intra.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(scv_entropy, paste0("../output/variability/SCV_", i,"_filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(scv_layers, paste0("../output/variability/SCV_", i,"_filtered_SCG.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(scv_layers_SCG, paste0("../output/variability/SCV_", i, "_filtered_only_SCG.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(scv_entropy_sample, paste0("../output/variability/SCV_", i,"_intra_filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(scv_layers_sample, paste0("../output/variability/SCV_", i, "_intra_filtered_SCG.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+}
+
+
+```
+
+### Filter SAAV table
+
+```{r, warning=FALSE}
+require(tidyverse)
+samples <- c("O03", "O07", "O11", "O12", "M11")
+
+# inter-sample level
+for(i in samples){
+  saav <- read.table(paste0("../output/variability/SAAV_", i,".txt"),
+                     header=TRUE, fill=TRUE, sep="\t", quote = "")
+  
+  # raw intra-sample table 
+  saav_intra <- saav[saav$sample==i, ]
+  
+  # filter entropy
+  saav_entropy <- saav[saav$entropy>=0.2 & saav$departure_from_consensus>=0.2,]
+  
+  # prepare layers to add in profile.db of interactive
+  saav_layers <- saav_entropy
+  saav_layers$entry_id <- paste0("p_", sprintf("%08d", as.numeric(saav_layers$entry_id)))
+  
+  # add SCG info
+  gene_clusters_sample <- gene_clusters[gene_clusters$genome_name==i,]
+  colnames(gene_clusters_sample)[5] <- "corresponding_gene_call"
+  saav_layers <- saav_layers %>% merge(gene_clusters_sample, by="corresponding_gene_call", all.x = TRUE)
+  saav_layers$corresponding_gene_call <- saav_layers$corresponding_gene_call %>% as.character()
+  saav_layers <- saav_layers %>% select(c(entry_id, everything()))
+  
+  # add MLST + wsp + cid info
+  saav_layers <- saav_layers %>% merge(mlst, by="gene_cluster_id", all.x = TRUE)
+  
+  # intra-sample
+  saav_entropy_sample <- saav_entropy[saav_entropy$sample==i, ]
+  saav_layers_sample <- saav_layers[saav_layers$sample==i, ]
+  
+  saav_layers_SCG <- saav_layers[!is.na(saav_layers$SCG), ]
+  saav_layers_SCG <- saav_layers_SCG[saav_layers_SCG$SCG==1, ]
+  
+  # save tables
+  write.table(saav_intra, paste0("../output/variability/SAAV_", i,"_intra.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(saav_entropy, paste0("../output/variability/SAAV_", i,"_filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(saav_layers, paste0("../output/variability/SAAV_", i,"_filtered_SCG.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(saav_layers_SCG, paste0("../output/variability/SAAV_", i, "_filtered_only_SCG.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(saav_entropy_sample, paste0("../output/variability/SAAV_", i,"_intra_filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(saav_layers_sample, paste0("../output/variability/SAAV_", i, "_intra_filtered_SCG.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+}
+
+```
+
+# SNV to interactive
+
+```{zsh engine.opts='-i'}
+conda activate anvio-7.1
+
+cd ../output/variability
+
+# for each sample
+for i in O03 O07 O11 O12 M11
+do
+
+  ## convert snv table to interactive
+
+  anvi-script-snvs-to-interactive SNV_${i}_intra_filtered.txt \
+                                  -o ${i}_interactive_filtered \
+                                  --min-departure-from-consensus 0.2
+  ## add layers to interactive
+  anvi-import-misc-data SNV_${i}_intra_filtered_SCG_reduced.txt \
+                        -p ${i}_interactive_filtered/profile.db \
+                        --target-data-table items \
+                        --just-do-it
+
+done
+```
+
+```{zsh eval=FALSE, engine.opts='-i', include=FALSE}
+conda activate anvio-7.1
+
+cd /Volumes/Elements/Hiseq/metagenomics_V2/output/shared_snv_stats
+
+# for each sample
+for i in O03 O07 O11 O12 M11
+do
+
+  ## convert snv table to interactive
+
+  anvi-script-snvs-to-interactive SNV_SCG_${i}_dup.txt \
+                                  -o ${i}_interactive_SCG_dup \
+                                  --min-departure-from-consensus 0.2
+  ## add layers to interactive
+  anvi-import-misc-data SNV_SCG_${i}_dup.txt \
+                        -p ${i}_interactive_SCG_dup/profile.db \
+                        --target-data-table items \
+                        --just-do-it
+
+done
+
+```
+
+## Export the state files
+
+After draw a nice plot in interactive for O11, we can export the state file and adpapt it for other samples
+
+```{zsh eval=FALSE, engine.opts='-i', include=FALSE}
+conda activate anvio-7.1
+
+cd /Volumes/Elements/Hiseq/metapangenomics/output/SNV/snv-tables/intra-samples
+
+for i in O03 O07 O11 O12 M11
+do
+
+anvi-import-state -s /Volumes/Elements/Hiseq/metapangenomics/metadata/state-files/state-draft3-${i}.json \
+                  -n draft3 \
+                  -p ${i}_wolbachia_filtered/profile.db
+
+anvi-import-state -s /Volumes/Elements/Hiseq/metapangenomics/metadata/state-files/state-draft4-${i}.json \
+                  -n draft4 \
+                  -p ${i}_wolbachia_filtered/profile.db
+
+anvi-import-state -s /Volumes/Elements/Hiseq/metapangenomics/metadata/state-files/state-draft4-gene-${i}.json \
+                  -n draft4_gene \
+                  -p ${i}_wolbachia_filtered/profile.db
+
+anvi-import-state -s /Volumes/Elements/Hiseq/metapangenomics/metadata/state-files/state-draft4-snv-shared-${i}.json \
+                  -n draft4_snv_shared \
+                  -p ${i}_wolbachia_filtered/profile.db
+
+anvi-import-state -s /Volumes/Elements/Hiseq/metapangenomics/metadata/state-files/state-draft4-gene-snv-shared-${i}.json \
+                  -n draft4_gene_snv_shared \
+                  -p ${i}_wolbachia_filtered/profile.db
+
+anvi-import-state -s /Volumes/Elements/Hiseq/metapangenomics/metadata/state-files/state-draft5-gene-${i}.json \
+                  -n draft5_gene \
+                  -p ${i}_wolbachia_filtered/profile.db
+
+anvi-import-state -s /Volumes/Elements/Hiseq/metapangenomics/metadata/state-files/state-draft5-gene-snv-shared${i}.json \
+                  -n draft5_gene_snv_shared \
+                  -p ${i}_wolbachia_filtered/profile.db
+done
+```
+
+
+
+## Display snv to interactive
+
+```{zsh eval=FALSE, engine.opts='-i', include=FALSE}
+conda activate anvio-7.1
+anvi-interactive --profile O11_wolbachia_filtered/profile.db \
+                 --tree O11_wolbachia_filtered/tree.txt \
+                 --view-data O11_wolbachia_filtered/view.txt \
+                 --title "SNV Profile for the O11 Wolbachia bin" \
+                 --manual
+
+anvi-interactive --profile profile.db \
+                 --tree tree.txt \
+                 --view-data view.txt \
+                 --manual
+
+anvi-interactive --profile M11_wolbachia_filtered/profile.db \
+                 --tree M11_wolbachia_filtered/tree.txt \
+                 --view-data M11_wolbachia_filtered/view.txt \
+                 --title "SNV Profile for the M11 Wolbachia bin" \
+                 --manual
+
+anvi-interactive --profile O03_wolbachia_filtered/profile.db \
+                 --tree O03_wolbachia_filtered/tree.txt \
+                 --view-data O03_wolbachia_filtered/view.txt \
+                 --title "SNV Profile for the O03 Wolbachia bin" \
+                 --manual
+
+anvi-interactive --profile O07_wolbachia_filtered/profile.db \
+                 --tree O07_wolbachia_filtered/tree.txt \
+                 --view-data O07_wolbachia_filtered/view.txt \
+                 --title "SNV Profile for the O07 Wolbachia bin" \
+                 --manual
+
+anvi-interactive --profile O12_wolbachia_filtered/profile.db \
+                 --tree O12_wolbachia_filtered/tree.txt \
+                 --view-data O12_wolbachia_filtered/view.txt \
+                 --title "SNV Profile for the O12 Wolbachia bin" \
+                 --manual
+```
+
+
+
+# Indel tables
+```{zsh engine.opts='-i'}
+cd ../output/
+
+mkdir indels && cd indels
+
+conda activate anvio-7.1
+
+for s in O03 O07 O11 M11 O12
+do
+
+## indels
+anvi-export-table ../06_MERGED_references_mode/"$s"/PROFILE.db --table indels -o "$s"_indels.txt
+
+done
+
+conda deactivate
+```
+
+## Filter indels
+
+```{r, warning=FALSE}
+require(tidyverse)
+samples <- c("O03", "O07", "O11", "O12", "M11")
+
+gene_clusters <- read.table("../output/pangenomics/Wolbachia-all-PAN-SUMMARY/Wolbachia_gene_clusters_summary.txt", header=TRUE, fill=TRUE, sep="\t", quote = "")
+mlst <- read.table("../output/metapangenomics/coverages-for-gene-clusters.txt", header=TRUE, fill=TRUE, sep="\t", quote = "")
+mlst <- mlst %>% select(c(1:9))
+
+for(i in samples){
+  indel <- read.table(paste0("../output/indels/", i, "_indels.txt"), header=TRUE, fill=TRUE, sep="\t", quote = "")
+  
+  # raw intra-sample table 
+  indel_intra <- indel[indel$sample==i, ]
+  
+  # remove outliers snv
+  indel_entropy <- indel[indel$cov_outlier_in_contig==0 & indel$cov_outlier_in_split==0, ]
+  
+  # prepare layers to add in profile.db of interactive
+  indel_layers <- indel_entropy
+  # indel_layers$entry_id <- paste0("p_", sprintf("%08d", as.numeric(indel_layers$entry_id)))
+  
+  # add SCG info
+  gene_clusters_sample <- gene_clusters[gene_clusters$genome_name==i,]
+  colnames(gene_clusters_sample)[5] <- "corresponding_gene_call"
+  indel_layers <- indel_layers %>% merge(gene_clusters_sample, by="corresponding_gene_call", all.x = TRUE)
+  indel_layers$corresponding_gene_call <- indel_layers$corresponding_gene_call %>% as.character()
+  indel_layers <- indel_layers %>% select(c(sample_id, everything()))
+  
+  # add MLST + wsp + cid info
+  indel_layers <- indel_layers %>% merge(mlst, by="gene_cluster_id", all.x = TRUE)
+  
+  # intra-sample
+  indel_entropy_sample <- indel_entropy[indel_entropy$sample==i, ]
+  indel_layers_sample <- indel_layers[indel_layers$sample==i, ]
+  
+  indel_layers_SCG <- indel_layers[!is.na(indel_layers$SCG), ]
+  indel_layers_SCG <- indel_layers_SCG[indel_layers_SCG$SCG==1, ]
+  
+  # save tables
+  write.table(indel_intra, paste0("../output/indels/indel_", i,"_intra.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(indel_entropy, paste0("../output/indels/indel_", i,"_filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(indel_layers, paste0("../output/indels/indel_", i,"_filtered_SCG.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(indel_layers_SCG, paste0("../output/indels/indel_", i, "_filtered_only_SCG.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(indel_entropy_sample, paste0("../output/indels/indel_", i,"_intra_filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(indel_layers_sample, paste0("../output/indels/indel_", i, "_intra_filtered_SCG.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+}
+```
+
+

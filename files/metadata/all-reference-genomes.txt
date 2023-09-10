@@ -1,0 +1,4 @@
+name	contigs_db_path
+wPipPEL	../output/reference_genomes/wPip-PEL.db
+wPipJHB	../output/reference_genomes/wPip-JHB.db
+wPipMOL	../output/reference_genomes/wPip-MOL.db

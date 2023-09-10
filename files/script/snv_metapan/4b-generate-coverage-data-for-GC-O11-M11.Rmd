@@ -1,0 +1,558 @@
+---
+title: "Create coverage layer for metapangenomics"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+---
+
+```{r setup}
+knitr::opts_knit$set(root.dir = '/Volumes/Elements/Hiseq/metagenomics_V2/output')
+```
+
+Script revisited from: https://merenlab.org/data/wolbachia-plasmid/#recovering-coverage-values-for-gene-clusters-of-the-wolbachia-pangenome-in-c-pipiens-metagenomes
+
+# Packages
+```{r}
+library("dplyr")
+```
+
+# Summary table from pangenomics analysis
+```{r, warning=FALSE}
+# Create output directories
+dir.create("metapangenomics", showWarnings = FALSE)
+setwd("metapangenomics")
+
+# Read the gene clusters summary table which is the output of anvi-summarize command run prior:
+gene_clusters_df <- read.table(file = '../pangenomics/Wolbachia-O11-M11-PAN-SUMMARY/Wolbachia_gene_clusters_summary.txt',
+                               header = TRUE,
+                               sep = "\t",
+                               quote = "")
+
+# Display genome names levels
+levels(gene_clusters_df$genome_name)
+
+# Remove singleton gene clusters unique to wPip since they have no coverage values
+gene_clusters_df_of_wPip <- gene_clusters_df[gene_clusters_df$genome_name == "wPipPEL", ]
+```
+
+# Blast output
+```{r, warning=FALSE}
+
+# read the blast output for best WO hits among wPip genes
+WO_in_wPip_df <- read.table(file = '../metadata/WO_in_wPip_best_hit.txt',
+                            header = TRUE, sep = "\t", quote = "")
+
+# learn which gene cluster ids corrpespond to wPip gene calls
+gene_clusters_df_of_wPip_phages=left_join(gene_clusters_df_of_wPip,
+                                          WO_in_wPip_df,
+                                          by="gene_callers_id")
+
+# keep only columns of interest
+gene_clusters_df_of_wPip_phages_short <- gene_clusters_df_of_wPip_phages[, colnames(gene_clusters_df_of_wPip_phages) %in%
+                                                                           c('WO_assignment', 'pct_alignment', 'gene_cluster_id')]
+```
+
+
+# Generate coverage values for each gene cluster from each metagenomes mapped to each MAG
+
+Nown we need to generate coverage values for each gene cluster from O11 and M11 Wolbachia MAGs for metapangenomics.
+
+## M11
+```{r, warning = FALSE}
+
+# Get the gene clusters for M11
+gene_clusters_df_of_M11 <- gene_clusters_df[gene_clusters_df$genome_name == "M11", ]
+
+# Keep only columns of interest
+gene_clusters_df_of_M11 <- gene_clusters_df_of_M11[, colnames(gene_clusters_df_of_M11) %in% c('gene_cluster_id', 'gene_callers_id')]
+
+# Learn gene coverages for all six Wolbachia genomes in the M11 metagenome using the summary of the merged profile database for M11
+gene_coverages_df_of_M11 <- read.table(file='03_CONTIGS_references_mode/M11-SUMMARY/bin_by_bin/M11/M11-gene_coverages.txt',
+                                       header=TRUE, sep="\t", quote="")
+
+# anvi'o adds ribosomal RNA genes ad hoc after HMM runs, so they appear among gene calls but not in the pangenome which only uses ORFs identified through prodigal. we will remove them bofore continuing
+missing_genes <- setdiff(gene_coverages_df_of_M11$gene_callers_id,
+                         gene_clusters_df_of_M11$gene_callers_id)
+gene_coverages_df_of_M11 <- gene_coverages_df_of_M11[!(gene_coverages_df_of_M11$gene_callers_id %in% missing_genes), ]
+
+# Now we can merge the two (gene_clusters and gene_coverages tables)
+gene_clusters_df_of_M11_with_covs=full_join(gene_clusters_df_of_M11,
+                                            gene_coverages_df_of_M11,
+                                            by="gene_callers_id")
+
+# Take the mean coverage of genes per gene cluster
+Mean_coverage_gene_clusters_df_of_M11 <- gene_clusters_df_of_M11_with_covs %>%
+  group_by(gene_cluster_id) %>%
+  summarize(mean(M11),
+            mean(O11), 
+            mean(O03), 
+            mean(O07),
+            mean(O12))
+
+colnames(Mean_coverage_gene_clusters_df_of_M11)[2:ncol(Mean_coverage_gene_clusters_df_of_M11)] <- c("cov_M11_in_M11", 
+                                                                                                    "cov_O11_in_M11",
+                                                                                                    "cov_O03_in_M11",
+                                                                                                    "cov_O07_in_M11",
+                                                                                                    "cov_O12_in_M11")
+
+```
+
+## O11
+```{r, warning = FALSE}
+
+# Get the gene clusters for M11
+gene_clusters_df_of_O11 <- gene_clusters_df[gene_clusters_df$genome_name == "O11", ]
+
+# Keep only columns of interest
+gene_clusters_df_of_O11 <- gene_clusters_df_of_O11[, colnames(gene_clusters_df_of_O11) %in% c('gene_cluster_id', 'gene_callers_id')]
+
+# Learn gene coverages for all six Wolbachia genomes in the O11 metagenome using the summary of the merged profile database for O11
+gene_coverages_df_of_O11 <- read.table(file='03_CONTIGS_references_mode/O11-SUMMARY/bin_by_bin/O11/O11-gene_coverages.txt',
+                                       header=TRUE, sep="\t", quote="")
+
+# anvi'o adds ribosomal RNA genes ad hoc after HMM runs, so they appear among gene calls but not in the pangenome which only uses ORFs identified through prodigal. we will remove them bofore continuing
+missing_genes <- setdiff(gene_coverages_df_of_O11$gene_callers_id,
+                         gene_clusters_df_of_O11$gene_callers_id)
+gene_coverages_df_of_O11 <- gene_coverages_df_of_O11[!(gene_coverages_df_of_O11$gene_callers_id %in% missing_genes), ]
+
+# Now we can merge the two (gene_clusters and gene_coverages tables)
+gene_clusters_df_of_O11_with_covs=full_join(gene_clusters_df_of_O11,
+                                            gene_coverages_df_of_O11,
+                                            by="gene_callers_id")
+
+# Take the mean coverage of genes per gene cluster
+Mean_coverage_gene_clusters_df_of_O11 <- gene_clusters_df_of_O11_with_covs %>%
+  group_by(gene_cluster_id) %>%
+  summarize(mean(M11),
+            mean(O11), 
+            mean(O03), 
+            mean(O07),
+            mean(O12))
+
+colnames(Mean_coverage_gene_clusters_df_of_O11)[2:ncol(Mean_coverage_gene_clusters_df_of_O11)] <- c("cov_M11_in_O11", 
+                                                                                                    "cov_O11_in_O11",
+                                                                                                    "cov_O03_in_O11",
+                                                                                                    "cov_O07_in_O11",
+                                                                                                    "cov_O12_in_O11")
+
+```
+
+## O03
+```{r, warning = FALSE}
+
+# Get the gene clusters for M11
+gene_clusters_df_of_O03 <- gene_clusters_df[gene_clusters_df$genome_name == "O03", ]
+
+# Keep only columns of interest
+gene_clusters_df_of_O03 <- gene_clusters_df_of_O03[, colnames(gene_clusters_df_of_O03) %in% c('gene_cluster_id', 'gene_callers_id')]
+
+# Learn gene coverages for all six Wolbachia genomes in the O03 metagenome using the summary of the merged profile database for O03
+gene_coverages_df_of_O03 <- read.table(file='03_CONTIGS_references_mode/O03-SUMMARY/bin_by_bin/O03/O03-gene_coverages.txt',
+                                       header=TRUE, sep="\t", quote="")
+
+# anvi'o adds ribosomal RNA genes ad hoc after HMM runs, so they appear among gene calls but not in the pangenome which only uses ORFs identified through prodigal. we will remove them bofore continuing
+missing_genes <- setdiff(gene_coverages_df_of_O03$gene_callers_id,
+                         gene_clusters_df_of_O03$gene_callers_id)
+gene_coverages_df_of_O03 <- gene_coverages_df_of_O03[!(gene_coverages_df_of_O03$gene_callers_id %in% missing_genes), ]
+
+# Now we can merge the two (gene_clusters and gene_coverages tables)
+gene_clusters_df_of_O03_with_covs=full_join(gene_clusters_df_of_O03,
+                                            gene_coverages_df_of_O03,
+                                            by="gene_callers_id")
+
+# Take the mean coverage of genes per gene cluster
+Mean_coverage_gene_clusters_df_of_O03 <- gene_clusters_df_of_O03_with_covs %>%
+  group_by(gene_cluster_id) %>%
+  summarize(mean(M11),
+            mean(O11), 
+            mean(O03), 
+            mean(O07),
+            mean(O12))
+
+colnames(Mean_coverage_gene_clusters_df_of_O03)[2:ncol(Mean_coverage_gene_clusters_df_of_O03)] <- c("cov_M11_in_O03", 
+                                                                                                    "cov_O11_in_O03",
+                                                                                                    "cov_O03_in_O03",
+                                                                                                    "cov_O07_in_O03",
+                                                                                                    "cov_O12_in_O03")
+
+```
+
+## O07
+```{r, warning = FALSE}
+
+# Get the gene clusters for M11
+gene_clusters_df_of_O07 <- gene_clusters_df[gene_clusters_df$genome_name == "O07", ]
+
+# Keep only columns of interest
+gene_clusters_df_of_O07 <- gene_clusters_df_of_O07[, colnames(gene_clusters_df_of_O07) %in% c('gene_cluster_id', 'gene_callers_id')]
+
+# Learn gene coverages for all six Wolbachia genomes in the O07 metagenome using the summary of the merged profile database for O07
+gene_coverages_df_of_O07 <- read.table(file='03_CONTIGS_references_mode/O07-SUMMARY/bin_by_bin/O07/O07-gene_coverages.txt',
+                                       header=TRUE, sep="\t", quote="")
+
+# anvi'o adds ribosomal RNA genes ad hoc after HMM runs, so they appear among gene calls but not in the pangenome which only uses ORFs identified through prodigal. we will remove them bofore continuing
+missing_genes <- setdiff(gene_coverages_df_of_O07$gene_callers_id,
+                         gene_clusters_df_of_O07$gene_callers_id)
+gene_coverages_df_of_O07 <- gene_coverages_df_of_O07[!(gene_coverages_df_of_O07$gene_callers_id %in% missing_genes), ]
+
+# Now we can merge the two (gene_clusters and gene_coverages tables)
+gene_clusters_df_of_O07_with_covs=full_join(gene_clusters_df_of_O07,
+                                            gene_coverages_df_of_O07,
+                                            by="gene_callers_id")
+
+# Take the mean coverage of genes per gene cluster
+Mean_coverage_gene_clusters_df_of_O07 <- gene_clusters_df_of_O07_with_covs %>%
+  group_by(gene_cluster_id) %>%
+  summarize(mean(M11),
+            mean(O11), 
+            mean(O03), 
+            mean(O07),
+            mean(O12))
+
+colnames(Mean_coverage_gene_clusters_df_of_O07)[2:ncol(Mean_coverage_gene_clusters_df_of_O07)] <- c("cov_M11_in_O07", 
+                                                                                                    "cov_O11_in_O07",
+                                                                                                    "cov_O03_in_O07",
+                                                                                                    "cov_O07_in_O07",
+                                                                                                    "cov_O12_in_O07")
+
+```
+
+## O12
+```{r, warning = FALSE}
+
+# Get the gene clusters for M11
+gene_clusters_df_of_O12 <- gene_clusters_df[gene_clusters_df$genome_name == "O12", ]
+
+# Keep only columns of interest
+gene_clusters_df_of_O12 <- gene_clusters_df_of_O12[, colnames(gene_clusters_df_of_O12) %in% c('gene_cluster_id', 'gene_callers_id')]
+
+# Learn gene coverages for all six Wolbachia genomes in the O12 metagenome using the summary of the merged profile database for O12
+gene_coverages_df_of_O12 <- read.table(file='03_CONTIGS_references_mode/O12-SUMMARY/bin_by_bin/O12/O12-gene_coverages.txt',
+                                       header=TRUE, sep="\t", quote="")
+
+# anvi'o adds ribosomal RNA genes ad hoc after HMM runs, so they appear among gene calls but not in the pangenome which only uses ORFs identified through prodigal. we will remove them bofore continuing
+missing_genes <- setdiff(gene_coverages_df_of_O12$gene_callers_id,
+                         gene_clusters_df_of_O12$gene_callers_id)
+gene_coverages_df_of_O12 <- gene_coverages_df_of_O12[!(gene_coverages_df_of_O12$gene_callers_id %in% missing_genes), ]
+
+# Now we can merge the two (gene_clusters and gene_coverages tables)
+gene_clusters_df_of_O12_with_covs=full_join(gene_clusters_df_of_O12,
+                                            gene_coverages_df_of_O12,
+                                            by="gene_callers_id")
+
+# Take the mean coverage of genes per gene cluster
+Mean_coverage_gene_clusters_df_of_O12 <- gene_clusters_df_of_O12_with_covs %>%
+  group_by(gene_cluster_id) %>%
+  summarize(mean(M11),
+            mean(O11), 
+            mean(O03), 
+            mean(O07),
+            mean(O12))
+
+colnames(Mean_coverage_gene_clusters_df_of_O12)[2:ncol(Mean_coverage_gene_clusters_df_of_O12)] <- c("cov_M11_in_O12", 
+                                                                                                    "cov_O11_in_O12",
+                                                                                                    "cov_O03_in_O12",
+                                                                                                    "cov_O07_in_O12",
+                                                                                                    "cov_O12_in_O12")
+
+```
+
+
+
+# Join WO assignment and Coverage so that we get GC common to wPip and O11 / M12 with 10 additional layers
+
+```{r, warning=FALSE}
+gene_clusters_df <- full_join(gene_clusters_df_of_wPip_phages_short,
+                              Mean_coverage_gene_clusters_df_of_O11,
+                              by="gene_cluster_id")
+
+gene_clusters_df <- full_join(gene_clusters_df,
+                              Mean_coverage_gene_clusters_df_of_M11,
+                              by="gene_cluster_id")
+
+gene_clusters_df <- full_join(gene_clusters_df,
+                              Mean_coverage_gene_clusters_df_of_O03,
+                              by="gene_cluster_id")
+
+gene_clusters_df <- full_join(gene_clusters_df,
+                              Mean_coverage_gene_clusters_df_of_O07,
+                              by="gene_cluster_id")
+
+gene_clusters_df <- full_join(gene_clusters_df,
+                              Mean_coverage_gene_clusters_df_of_O12,
+                              by="gene_cluster_id")
+
+```
+
+# Keep the most frequent WO assignment for each gene cluster
+
+Here we have a data frame that lists for each gene cluster 
+(1) the mean coverage values per gene per genome
+(2) WO assignments if genes match to wPip prophages
+(3) the percent alignment of the query gene seqeunce so we can filter out weak hits. 
+
+The following section of the code works on this data frame to produce a final additional item data file to be incorporated into the pan genome.
+
+```{r, warning=FALSE}
+# a better max function that the default max function. just ignore:
+better_max <- function(x) ifelse( !all(is.na(x)), max(x, na.rm=T), NA)
+
+output_df <- data.frame(gene_cluster_id=character(),
+                        WO_assignmnet=character(),
+                        pct_alignment=numeric(),
+                        cov_in_003=numeric(),
+                        cov_in_007=numeric(),
+                        cov_in_011=numeric(),
+                        cov_in_012=numeric(),
+                        stringsAsFactors=FALSE)
+
+output_df <- data.frame(gene_cluster_id=character(),
+                        WO_assignmnent=character(),
+                        pct_alignment=numeric(),
+                        
+                        cov_M11_in_O11=numeric(),
+                        cov_O11_in_O11=numeric(),
+                        cov_O03_in_O11=numeric(),
+                        cov_O07_in_O11=numeric(),
+                        cov_O12_in_O11=numeric(),
+                        
+                        cov_M11_in_M11=numeric(),
+                        cov_O11_in_M11=numeric(),
+                        cov_O03_in_M11=numeric(),
+                        cov_O07_in_M11=numeric(),
+                        cov_O12_in_M11=numeric(),
+                        
+                        cov_M11_in_O03=numeric(),
+                        cov_O11_in_O03=numeric(),
+                        cov_O03_in_O03=numeric(),
+                        cov_O07_in_O03=numeric(),
+                        cov_O12_in_O03=numeric(),
+                        
+                        cov_M11_in_O07=numeric(),
+                        cov_O11_in_O07=numeric(),
+                        cov_O03_in_O07=numeric(),
+                        cov_O07_in_O07=numeric(),
+                        cov_O12_in_O07=numeric(),
+                        
+                        cov_M11_in_O12=numeric(),
+                        cov_O11_in_O12=numeric(),
+                        cov_O03_in_O12=numeric(),
+                        cov_O07_in_O12=numeric(),
+                        cov_O12_in_O12=numeric(),
+                        
+                        stringsAsFactors=FALSE)
+```
+
+Here we go through every gene cluster, pick the most frequent WO assignment if there are any, and then discard the ones resulted from hits where less than 90% of the query sequence were aligned
+
+```{r, warning=FALSE}
+N = 1
+for (gene_cluster in levels(gene_clusters_df$gene_cluster_id)){
+  #gene_cluster <- "GC_00000001"
+  df <- gene_clusters_df[gene_clusters_df$gene_cluster_id == gene_cluster, ]
+  freqs <- as.data.frame(table(df$WO_assignment))
+  freqs <- freqs[freqs$Freq > 0, ]
+  most_frequent_assignment <- as.character(freqs[order(c(-freqs$Freq)), ]$Var1[1])
+
+  best_pct_alignment_score <- better_max(df$pct_alignment)
+
+  # remove weak WO assignments
+  if (!is.na(df$pct_alignment[1])){
+    if (df$pct_alignment[1] < 90){
+      most_frequent_assignment <- NA;
+    }
+  }
+
+  output_df[N, ] <- c(gene_cluster,
+                      most_frequent_assignment,
+                      df$pct_alignment[1],
+                      
+                      df$cov_M11_in_O11[1],
+                      df$cov_O11_in_O11[1],
+                      df$cov_O03_in_O11[1],
+                      df$cov_O07_in_O11[1],
+                      df$cov_O12_in_O11[1],
+                      
+                      df$cov_M11_in_M11[1],
+                      df$cov_O11_in_M11[1],
+                      df$cov_O03_in_M11[1],
+                      df$cov_O07_in_M11[1],
+                      df$cov_O12_in_M11[1],
+                      
+                      df$cov_M11_in_O03[1],
+                      df$cov_O11_in_O03[1],
+                      df$cov_O03_in_O03[1],
+                      df$cov_O07_in_O03[1],
+                      df$cov_O12_in_O03[1],
+                      
+                      df$cov_M11_in_O07[1],
+                      df$cov_O11_in_O07[1],
+                      df$cov_O03_in_O07[1],
+                      df$cov_O07_in_O07[1],
+                      df$cov_O12_in_O07[1],
+                      
+                      df$cov_M11_in_O12[1],
+                      df$cov_O11_in_O12[1],
+                      df$cov_O03_in_O12[1],
+                      df$cov_O07_in_O12[1],
+                      df$cov_O12_in_O12[1]
+                      
+                      )
+  N = N + 1
+}
+
+```
+
+# Add cid genes annotations
+
+## Bonneau 2019
+```{r, warning=FALSE}
+
+# read the blast output for cid hits among wpip genes
+cid_Bonneau_in_wPip_df <- read.table(file = 'genes/cid/cidA_cidB_Bonneau_in_Wpip_best_hits.txt',
+                            header = TRUE, sep = "\t", quote = "", dec = ".")
+cid_Bonneau_in_wPip_df [,"pct_alignment"] <- gsub(",", ".", cid_Bonneau_in_wPip_df [,"pct_alignment"])
+cid_Bonneau_in_wPip_df$pct_alignment <- cid_Bonneau_in_wPip_df$pct_alignment %>% as.numeric()
+
+# Select and rename columns of interest
+cid_Bonneau_in_wPip_df <- cid_Bonneau_in_wPip_df %>% select(c(gene_callers_id, cidA.cidB_assignment, pct_alignment))
+colnames(cid_Bonneau_in_wPip_df)[2:3] <- c("cid_Bonneau_2018", "cid_Bonneau_pct_alignment")
+
+# Change levels of cid assigments
+levels(cid_Bonneau_in_wPip_df$cid_Bonneau_2018) <- c("cidA_I(gamma/2)", "cidB_I(a/1)", "cidB_I(a/2)")
+
+gene_clusters_df_of_cid=left_join(gene_clusters_df_of_wPip,
+                                          cid_Bonneau_in_wPip_df,
+                                          by="gene_callers_id")
+gene_clusters_df_of_cid <- na.omit(gene_clusters_df_of_cid)
+
+gene_clusters_df_of_cid_short <- gene_clusters_df_of_cid[, colnames(gene_clusters_df_of_cid) %in%
+                                                                           c("cid_Bonneau_2018", "cid_Bonneau_pct_alignment", 'gene_cluster_id')]
+
+gene_clusters_df_of_cid_short1 <- gene_clusters_df_of_cid_short[gene_clusters_df_of_cid_short$gene_cluster_id=="GC_00000044" & 
+                                                                 gene_clusters_df_of_cid_short$cid_Bonneau_pct_alignment>99.95,]
+
+gene_clusters_df_of_cid_short2 <- gene_clusters_df_of_cid_short[gene_clusters_df_of_cid_short$gene_cluster_id!="GC_00000044",]
+gene_clusters_df_of_cid_short <- gene_clusters_df_of_cid_short1 %>% rbind(gene_clusters_df_of_cid_short2)
+
+# Merge to output table
+output_df <- output_df %>% merge(gene_clusters_df_of_cid_short , by="gene_cluster_id", all.x = TRUE)
+```
+
+## Beckmann 2013
+```{r, warning=FALSE}
+
+# read the blast output for cid hits among wpip genes
+cid_Beckmann_in_wPip_df <- read.table(file = 'genes/cid/cidA_cidB_Beckmann_in_Wpip_best_hits.txt',
+                            header = TRUE, sep = "\t", quote = "", dec = ".")
+cid_Beckmann_in_wPip_df [,"pct_alignment"] <- gsub(",", ".", cid_Beckmann_in_wPip_df [,"pct_alignment"])
+cid_Beckmann_in_wPip_df$pct_alignment <- cid_Beckmann_in_wPip_df$pct_alignment %>% as.numeric()
+
+# Select and rename columns of interest
+cid_Beckmann_in_wPip_df <- cid_Beckmann_in_wPip_df %>% select(c(gene_callers_id, cidA.cidB_assignment, pct_alignment))
+colnames(cid_Beckmann_in_wPip_df)[2:3] <- c("cid_Beckmann_2013", "cid_Beckmann_pct_alignment")
+
+# Change levels of cid assigments
+levels(cid_Beckmann_in_wPip_df$cid_Beckmann_2013) <- c("cidA", "cidB")
+
+gene_clusters_df_of_cid=left_join(gene_clusters_df_of_wPip,
+                                          cid_Beckmann_in_wPip_df,
+                                          by="gene_callers_id")
+gene_clusters_df_of_cid <- na.omit(gene_clusters_df_of_cid)
+
+gene_clusters_df_of_cid_short <- gene_clusters_df_of_cid[, colnames(gene_clusters_df_of_cid) %in%
+                                                                           c("cid_Beckmann_2013", "cid_Beckmann_pct_alignment", 'gene_cluster_id')]
+
+gene_clusters_df_of_cid_short1 <- gene_clusters_df_of_cid_short[gene_clusters_df_of_cid_short$gene_cluster_id=="GC_00000044" & 
+                                                                 gene_clusters_df_of_cid_short$cid_Beckmann_pct_alignment>99.95,]
+
+gene_clusters_df_of_cid_short2 <- gene_clusters_df_of_cid_short[gene_clusters_df_of_cid_short$gene_cluster_id!="GC_00000044",]
+gene_clusters_df_of_cid_short <- gene_clusters_df_of_cid_short1 %>% rbind(gene_clusters_df_of_cid_short2)
+
+# Merge to output table
+output_df <- output_df %>% merge(gene_clusters_df_of_cid_short , by="gene_cluster_id", all.x = TRUE)
+```
+
+
+## MLST + WSP
+```{r, warning=FALSE}
+
+# read the blast output for cid hits among wpip genes
+mlst_wsp_in_wPip_df <- read.table(file = 'genes/mlst/mlst_wsp_in_Wpip_best_hits.txt',
+                            header = TRUE, sep = "\t", quote = "", dec = ".")
+mlst_wsp_in_wPip_df[,"pct_alignment"] <- gsub(",", ".", mlst_wsp_in_wPip_df[,"pct_alignment"])
+mlst_wsp_in_wPip_df$pct_alignment <- mlst_wsp_in_wPip_df$pct_alignment %>% as.numeric()
+
+# Select and rename columns of interest
+mlst_wsp_in_wPip_df <- mlst_wsp_in_wPip_df %>% select(c(gene_callers_id, mlst.wsp_assignment, pct_alignment))
+colnames(mlst_wsp_in_wPip_df)[2:3] <- c("mlst_wsp", "mlst_wsp_pct_alignment")
+
+# Change levels of cid assigments
+levels(mlst_wsp_in_wPip_df$mlst_wsp)
+
+gene_clusters_df_of_mlst_wsp=left_join(gene_clusters_df_of_wPip,
+                                          mlst_wsp_in_wPip_df,
+                                          by="gene_callers_id")
+gene_clusters_df_of_mlst_wsp <- na.omit(gene_clusters_df_of_mlst_wsp)
+
+gene_clusters_df_of_mlst_wsp_short <- gene_clusters_df_of_mlst_wsp[, colnames(gene_clusters_df_of_mlst_wsp) %in%
+                                                                           c("mlst_wsp", "mlst_wsp_pct_alignment", 'gene_cluster_id')]
+
+# Merge to output table
+output_df <- output_df %>% merge(gene_clusters_df_of_mlst_wsp_short , by="gene_cluster_id", all.x = TRUE)
+```
+
+
+
+# Save table
+```{r, warning=FALSE}
+
+# Select coverage values for O11 and M11
+output_df_short <- output_df %>% select(c(gene_cluster_id, 
+                                          WO_assignmnent, 
+                                          pct_alignment,
+                                          cid_Beckmann_2013, 
+                                          cid_Beckmann_pct_alignment,
+                                          cid_Bonneau_2018, 
+                                          cid_Bonneau_pct_alignment,
+                                          mlst_wsp, 
+                                          mlst_wsp_pct_alignment,
+                                          
+                                          cov_M11_in_O11,
+                                          cov_O11_in_O11,
+                                          cov_O03_in_O11,
+                                          cov_O07_in_O11,
+                                          cov_O12_in_O11,
+                                          
+                                          cov_M11_in_M11,
+                                          cov_O11_in_M11,
+                                          cov_O03_in_M11,
+                                          cov_O07_in_M11,
+                                          cov_O12_in_M11,
+                                          
+                                          cov_M11_in_O03,
+                                          cov_O11_in_O03,
+                                          cov_O03_in_O03,
+                                          cov_O07_in_O03,
+                                          cov_O12_in_O03,
+                                          
+                                          cov_M11_in_O07,
+                                          cov_O11_in_O07,
+                                          cov_O03_in_O07,
+                                          cov_O07_in_O07,
+                                          cov_O12_in_O07,
+                                          
+                                          cov_M11_in_O12,
+                                          cov_O11_in_O12,
+                                          cov_O03_in_O12,
+                                          cov_O07_in_O12,
+                                          cov_O12_in_O12
+                                          
+                                          ))
+
+# Save
+write.table(output_df_short, "metapangenomics/coverages-for-gene-clusters-O11-M11.txt", quote=FALSE, sep="\t", na="", row.names=FALSE)
+```
+
+
