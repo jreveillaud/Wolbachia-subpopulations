@@ -355,16 +355,21 @@ The final anvi'o merged profile.db from references-mode are available at [10.528
 
 To study the *Wolbachia* variability and metapangenomics, you can run these scripts:
 
-* [1-run-pangenome.sh](files/script/snv_metapan/1-run-pangenome.sh): Prepare *Wolbachia* MAGs contigs.db, *Wolbachia* reference genomes and run pangenomes.
-* [2-run-blast.sh](files/script/snv_metapan/2-run-blast.sh): Download the MLST + wsp gene sequences and blast them against *Wolbachia* MAGs contigs.db. 
-* [3-generate-coverage-data-for-GC.Rmd](files/script/snv_metapan/3-generate-coverage-data-for-GC.Rmd): Generate coverage values of each metagenome and MLST+wsp genes at Gene Clusters (GCs) level.
-* [4-add-coverage-data-to-pan.sh](files/script/snv_metapan/4-add-coverage-data-to-pan.sh): Add coverage values previously generated in pangenomes. 
-* [5-generate-variability-tables-and-interactive-snv.Rmd](files/script/snv_metapan/5-generate-variability-tables-and-interactive-snv.Rmd): Generate variability tables (Single Nucleotide Variants, Single Codon Variants, Single Amino Acid Variants), indels/insertion tables at intra-MAGs and inter-MAGs level and prepare interactive view of SNVs.
-* [6-prepare-additional-data-to-snvs.R](files/script/snv_metapan/6-prepare-additional-data-to-snvs.R): Prepare additionnal data (MLST and wsp assignments) to add to the interactive view of SNVs. 
-* [7-select-SNV-SCV-SAAVs.R](files/script/snv_metapan/7-select-SNV-SCV-SAAVs.R): Select SCV and SAAV generated from only the filtered SNVs.
-* [8-merge_gene_cluster_SNV.R](files/script/snv_metapan/8-merge_gene_cluster_SNV.R): Identify shared SNVs, Single copy Core Genes from *Wolbachia* (wSCG) from the Gene Cluster tables (pangenomics), link the wSCG and SNVs informations to export it in SNV interactive databases.
-* [9-add-wSCG-to-interactive-SNV.sh](files/script/snv_metapan/9-add-wSCG-to-interactive-SNV.sh): Add wSCG infos in SNV interactive databases.
-* [10-SNV-figure-for-selected-splits.Rmd](files/script/snv_metapan/10-SNV-figure-for-selected-splits.Rmd): Generate SNV and gene figures for selected splits from *Wolbachia* MAG O11. We then used Inskape to create the final SNV figures for these splits. 
+* [1-reference-genome.sh](files/script/snv_metapan/1-reference-genome.sh): Download and prepare Wolbachia reference genomes for pangenomics
+* [2-run-pangenome.sh](files/script/snv_metapan/2-run-pangenome.sh): Compute pangenome with 1) all the Wolbachia MAGs and Wolbachia reference genomes, 2) only Wolbachia MAGs M11/O11 and wPipPEL reference genome (for metapangenomics)
+* [3-blast-cid-mlst.sh](files/script/snv_metapan/3-blast-cid-mlst.sh): Download the MLST + wsp gene sequences and blast them against Wolbachia MAGs contigs.db
+* [4a-generate-coverage-data-for-GC.Rmd](files/script/snv_metapan/4a-generate-coverage-data-for-GC.Rmd): Generate coverage values of each metagenome and MLST+wsp genes at Gene Clusters (GCs) level for all the Wolbachia MAGs
+* [4b-generate-coverage-data-for-GC-M11-O11.Rmd](files/script/snv_metapan/4b-generate-coverage-data-for-GC-M11-O11.Rmd): Generate coverage values of each metagenome and MLST+wsp genes at Gene Clusters (GCs) level for Wolbachia MAGs M11 and O11
+* [5-add-coverage-data-to-pan.sh](files/script/snv_metapan/5-add-coverage-data-to-pan.sh): Add coverage values previously generated in pangenome databases
+* [6a-generate-variability-tables-and-interactive-snv.Rmd](files/script/snv_metapan/6a-generate-variability-tables-and-interactive-snv.Rmd): Generate variability tables (Single Nucleotide Variants, Single Codon Variants, Single Amino Acid Variants), indels/insertion tables at intra-sample and inter-sample levels
+* [6b-generate-variability-tables-and-interactive-snv-eggs.Rmd](files/script/snv_metapan/6b-generate-variability-tables-and-interactive-snv-eggs.Rmd): Same as script 6a but with egg metagenomes
+* [7-select-SNV-SCV-SAAVs.R](files/script/snv_metapan/7-select-SNV-SCV-SAAVs.R): Select SCVs and SAAVs generated from only the filtered SNVs for each Wolbachia MAG
+* [8-merge-gene-cluster-SNV.R](files/script/snv_metapan/8-merge-gene-cluster-SNV.R): Identify shared SNVs, Single copy Core Genes from Wolbachia (wSCG) from the Gene Cluster tables (pangenomics), link the wSCG and SNVs informations to export it in SNV interactive databases.
+* [9a-SNV-figure-for-selected-splits.Rmd](files/script/snv_metapan/9a-SNV-figure-for-selected-splits.Rmd): Generate SNV and gene figures for selected splits from Wolbachia MAG O11 and O03. We then used Inskape to create the final SNV figures for these splits
+* [9b-SNV-figure-for-selected-splits.Rmd](files/script/snv_metapan/9b-SNV-figure-for-selected-splits.Rmd): Same as 9a but with egg metagenomes
+* [10a-generate-data-for-check-gene-cluster-coverage.sh](files/script/snv_metapan/10a-generate-data-for-check-gene-cluster-coverage.sh): Generate data for inspect the coverage of gene clusters in each Wolbachia MAG
+* [10b-check-gene-cluster-coverage.Rmd](files/script/snv_metapan/10b-check-gene-cluster-coverage.Rmd): Plot the coverage of each metagenome to corresponding gene cluster from each Wolbachia MAG. 
+* [11-update-profile-db-for-visualization.Rmd](files/script/snv_metapan/11-update-profile-db-for-visualization.Rmd): Edit profile db for each Wolbachia MAG to visualize SNV in different levels (raw, without coverage outliers and filtered) in anvio interactive view. These views have been used in Inkscape to get the final figures (Figure 2, Supplementary Figure 9)
 
 
 # Explore the co-occurence of *Wolbachia* subpopulations accross additional *Wolbachia* metagenomes (from eggs)
