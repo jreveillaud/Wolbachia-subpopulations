@@ -1,0 +1,121 @@
+---
+title: "5b-check-coverage-of-wSCGs"
+author: "Hans Schrieke, Blandine Trouche and Julie Reveillaud"
+date: "`r Sys.Date()`"
+output: 
+  github_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "/Users/btrouche/Dropbox/RosaLind/SNV_Meren")
+```
+
+## Generate data for inspecting coverage of *w*SCGs in each metagenome
+
+```{bash script 10a, eval = FALSE}
+mkdir -p 09_GC_coverage
+
+for i in M11 O03 O07 O11 O12
+do
+
+ln -s 04_MAPPING_references_mode/{i}/{i}_filter20.bam 09_GC_coverage/Wolbachia-${i}_filter20.bam
+
+conda activate anvio-7.1
+
+anvi-profile-blitz 09_GC_coverage/Wolbachia-${i}_filter20.bam \
+                   -c 09_GC_coverage/Wolbachia-${i}.db \
+                   -o 09_GC_coverage/OUTPUT-${i}.txt
+
+anvi-profile-blitz 09_GC_coverage/Wolbachia-${i}_filter20.bam \
+                   -c 09_GC_coverage/Wolbachia-${i}.db \
+		               --gene-mode \
+                   -o 09_GC_coverage/OUTPUT-genes-${i}.txt
+
+done
+                   
+conda deactivate
+```
+
+## Plotting gene coverage
+
+```{r script 10b, warning=FALSE}
+require(tidyverse)
+require(ggplot2)
+
+## Make dataframe 
+# Import summary from pangenomics analysis including all the Wolbachia MAGs
+GC <- read.table("pangenomics/Wolbachia-all-PAN-SUMMARY/Wolbachia_gene_clusters_summary.txt", 
+                 header=TRUE, fill=TRUE, sep="\t", quote = "")
+GC[GC$SCG==0, "SCG"] <- "Not wSCG"
+GC[GC$SCG==1, "SCG"] <- "wSCG"
+GC$SCG <- as.factor(GC$SCG)
+levels(GC$SCG)
+GC$SCG <- factor(GC$SCG, levels=c("wSCG", "Not wSCG"))
+
+GC_M11 <- GC[GC$genome_name=="M11",]
+GC_O11 <- GC[GC$genome_name=="O11",]
+GC_O03 <- GC[GC$genome_name=="O03",]
+GC_O07 <- GC[GC$genome_name=="O07",]
+GC_O12 <- GC[GC$genome_name=="O12",]
+
+# Import coverage values for each gene of Wolbachia O11 MAG
+genes_M11 <- read.table("09_GC_coverage/OUTPUT-genes-M11.txt", sep="\t", header=T)
+genes_O11 <- read.table("09_GC_coverage/OUTPUT-genes-O11.txt", sep="\t", header=T)
+genes_O03 <- read.table("09_GC_coverage/OUTPUT-genes-O03.txt", sep="\t", header=T)
+genes_O07 <- read.table("09_GC_coverage/OUTPUT-genes-O07.txt", sep="\t", header=T)
+genes_O12 <- read.table("09_GC_coverage/OUTPUT-genes-O12.txt", sep="\t", header=T)
+
+# Merge it to SCG infos
+genes_M11 <- genes_M11 %>% merge(GC_M11 %>% select(c(gene_callers_id, SCG, COG20_FUNCTION)), by="gene_callers_id", all.x = T)
+genes_O11 <- genes_O11 %>% merge(GC_O11 %>% select(c(gene_callers_id, SCG, COG20_FUNCTION)), by="gene_callers_id", all.x = T)
+genes_O03 <- genes_O03 %>% merge(GC_O03 %>% select(c(gene_callers_id, SCG, COG20_FUNCTION)), by="gene_callers_id", all.x = T)
+genes_O07 <- genes_O07 %>% merge(GC_O07 %>% select(c(gene_callers_id, SCG, COG20_FUNCTION)), by="gene_callers_id", all.x = T)
+genes_O12 <- genes_O12 %>% merge(GC_O12 %>% select(c(gene_callers_id, SCG, COG20_FUNCTION)), by="gene_callers_id", all.x = T)
+
+df <- genes_M11 %>% rbind(genes_O03, genes_O07, genes_O11, genes_O12)
+
+# all genes
+theme_set(theme_bw())
+
+p <- ggplot(data = df, aes(x=gene_callers_id, y=q2q3_cov)) + 
+  geom_point(size=1, color='black') +
+  theme(legend.position="bottom", 
+        axis.text.x = element_text(angle = 90, hjust = 1))+
+  facet_wrap(~SCG+sample, ncol=5, scales="free_x")+
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        plot.title = ggtext::element_markdown())+
+        labs(title="Reconstructed *Wolbachia* gene coverage in the corresponding metagenome", 
+       x="Genes", y="q2q3 coverage")
+p
+
+tiff("09_GC_coverage/cov_SCG.tiff", units="in", width=10, height=5, res=300)
+p
+dev.off()
+
+# remove outliers
+df <- df[df$q2q3_cov < 24400, ]
+
+theme_set(theme_bw())
+
+p <- ggplot(data = df, aes(x=gene_callers_id, y=q2q3_cov)) + 
+  geom_point(size=1, color='black') +
+  theme(legend.position="bottom", 
+        axis.text.x = element_text(angle = 90, hjust = 1))+
+  facet_wrap(~SCG+sample, ncol=5, scales="free_x")+
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        plot.title = ggtext::element_markdown())+
+        labs(title="Reconstructed *Wolbachia* gene coverage in the corresponding metagenome", 
+       x="Genes", y="q2q3 coverage")
+p
+
+tiff("09_GC_coverage/cov_SCG_no_outliers.tiff", units="in", width=10, height=5, res=300)
+p
+dev.off()
+```
+
+

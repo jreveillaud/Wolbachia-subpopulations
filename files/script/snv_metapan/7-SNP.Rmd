@@ -1,0 +1,16 @@
+---
+title: "7-generate-variability-tables"
+author: "Hans Schrieke, Blandine Trouche and Julie Reveillaud"
+date: "`r Sys.Date()`"
+output: 
+  github_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "/Users/btrouche/Dropbox/RosaLind/SNV_Meren")
+```
+
+

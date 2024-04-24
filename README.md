@@ -136,7 +136,7 @@ done
 conda deactivate
 ```
 
-Then, you can plot the contamination rates using the following script : [phyloflash-plot.Rmd](files/script/phyloflash-plot.Rmd)
+Then, you can plot the contamination rates using the following script (Figure S2): [phyloflash-plot.Rmd](files/script/phyloflash-plot.Rmd)
 
 
 ## Assembly
@@ -373,14 +373,17 @@ The anvi'o merged profile.dbs from references-mode and with filtered mapping, as
 * [3-blast-cid-mlst.sh](files/script/snv_metapan/3-blast-cid-mlst.sh): Download the MLST + *wsp* gene sequences and blast them against *Wolbachia* MAGs contigs.db
 * [4a-generate-coverage-data-for-GC.Rmd](files/script/snv_metapan/4a-generate-coverage-data-for-GC.Rmd): Generate coverage values of each metagenome and MLST+*wsp* genes at Gene Clusters (GCs) level for all the *Wolbachia* MAGs
 * [4b-generate-coverage-data-for-GC-O11-M11.Rmd](files/script/snv_metapan/4b-generate-coverage-data-for-GC-O11-M11.Rmd): Generate coverage values of each metagenome and MLST+*wsp* genes at Gene Clusters (GCs) level for *Wolbachia* MAGs M11 and O11
-* [5-add-coverage-data-to-pan.sh](files/script/snv_metapan/5-add-coverage-data-to-pan.sh): Add coverage values previously generated in pangenome databases
+* [5-add-coverage-data-to-pan.sh](files/script/snv_metapan/5-add-coverage-data-to-pan.sh): Add coverage values previously generated in pangenome databases (Figure S3)
+* [5b-check-coverage-of-wSCGs.md](files/script/snv_metapan/5b-check-coverage-of-wSCGs.md): Inspect the coverage of *w*SCGs (core pangenome) in each *Wolbachia* MAG (Figure S1)
+
 
 # Genetic variability analysis: inspecting SNVs, SNPs, SCVs and SAAVs
 
-* [6-generate-variability-tables.md](files/script/snv_metapan/6a-generate-variability-tables-and-interactive-snv.Rmd): Generate variability tables (Single Nucleotide Variants, Single Codon Variants, Single Amino Acid Variants), at intra-sample and inter-sample levels and add gene cluster information
+* [6-generate-variability-tables.md](files/script/snv_metapan/6a-generate-variability-tables-and-interactive-snv.md): Generate variability tables (Single Nucleotide Variants, Single Codon Variants, Single Amino Acid Variants), at intra-sample and inter-sample levels and add gene cluster information
+
 * [7-select-SNV-SCV-SAAVs.R](files/script/snv_metapan/7-select-SNV-SCV-SAAVs.R): Select SCVs and SAAVs generated from only the filtered SNVs for each *Wolbachia* MAG
-* [9a-SNV-figure-for-selected-splits.Rmd](files/script/snv_metapan/9a-SNV-figure-for-selected-splits.Rmd): Generate SNV and gene figures for selected splits from *Wolbachia* MAG O11 and O03. We then used Inskape to create the final SNV figures for these splits
-* [10a-generate-data-for-check-gene-cluster-coverage.sh](files/script/snv_metapan/10a-generate-data-for-check-gene-cluster-coverage.sh): Generate data for inspect the coverage of gene clusters in each *Wolbachia* MAG
-* [10b-check-gene-cluster-coverage.Rmd](files/script/snv_metapan/10b-check-gene-cluster-coverage.Rmd): Plot the coverage of each metagenome to corresponding gene cluster from each *Wolbachia* MAG.
+* [9a-SNV-figure-for-selected-splits.Rmd](files/script/snv_metapan/9a-SNV-figure-for-selected-splits.Rmd): Generate SNV and gene figures for selected splits from *Wolbachia* MAG O11 and O03. We then used Inskape to create the final SNV figures for these splits (Figures S5-7)
+(Figure S8): SNV filters
+(Figure S9-14): SNV inspection
 
 
