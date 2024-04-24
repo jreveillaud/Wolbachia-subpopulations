@@ -385,7 +385,7 @@ The anvi'o merged profile.dbs from references-mode and with filtered mapping, as
 
 # Genetic variability analysis: inspecting SNVs, SNPs, SCVs and SAAVs
 
-* [6-generate-variability-tables.md](files/script/snv_metapan/6-generate-variability-tables-and-interactive-snv.md): Generate variability tables (Single Nucleotide Variants, Single Codon Variants, Single Amino Acid Variants), at intra-sample and inter-sample levels and add gene cluster information
+* [6-generate-variability-tables.md](files/script/snv_metapan/6-generate-variability-tables.md): Generate variability tables (Single Nucleotide Variants, Single Codon Variants, Single Amino Acid Variants), at intra-sample and inter-sample levels and add gene cluster information
 
 * [7-select-SNV-SCV-SAAVs.R](files/script/snv_metapan/7-select-SNV-SCV-SAAVs.R): Select SCVs and SAAVs generated from only the filtered SNVs for each *Wolbachia* MAG
 * [9a-SNV-figure-for-selected-splits.Rmd](files/script/snv_metapan/9a-SNV-figure-for-selected-splits.Rmd): Generate SNV and gene figures for selected splits from *Wolbachia* MAG O11 and O03. We then used Inskape to create the final SNV figures for these splits (Figures S5-7)
