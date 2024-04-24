@@ -355,13 +355,21 @@ The references-mode includes the same steps described above but it also allows t
 To run it:
 [run_metagenomics_ref_mode.sh](files/script/run_metagenomics_ref_mode.sh)
 
-The final anvi'o merged profile.db from references-mode are available at [10.5281/zenodo.7183324](10.5281/zenodo.7183324).
+## Filtering the mapping results, profiling and merging
+
+To avoid biases resulting from non-specific read recruitment, we implemented a filter on mapping quality with MAPQ required to be above 20.   
+We then profiled the resulting bam files and merge the single profiles. 
+
+Corresponding script: 
+[filter_mapping_and_profile.sh](files/script/filter_mapping_and_profile.sh)
+
+The anvi'o merged profile.dbs from references-mode and with filtered mapping, as well as the corresponding contigs.db are available at [10.5281/zenodo.7183324](10.5281/zenodo.7183324).
 
 # (Meta)pangenomic analysis
 
 * [1-reference-genomes.sh](files/script/snv_metapan/1-reference-genomes.sh): Download and prepare *Wolbachia* reference genomes for pangenomics
-* [2-run-pangenome.sh](files/script/snv_metapan/2-run-pangenome.sh): Compute pangenome with 1) all the *Wolbachia* MAGs and *Wolbachia* reference genomes, 2) only *Wolbachia* MAGs M11/O11 and wPipPEL reference genome (for metapangenomics)
-* [3-blast-cid-mlst.sh](files/script/snv_metapan/3-blast-cid-mlst.sh): Download the MLST + wsp gene sequences and blast them against *Wolbachia* MAGs contigs.db
+* [2-run-pangenome.sh](files/script/snv_metapan/2-run-pangenome.sh): Compute pangenome with 1) all the *Wolbachia* MAGs and *Wolbachia* reference genomes, 2) only *Wolbachia* MAGs M11/O11 and *w*PipPEL reference genome (for metapangenomics)
+* [3-blast-cid-mlst.sh](files/script/snv_metapan/3-blast-cid-mlst.sh): Download the MLST + *wsp* gene sequences and blast them against *Wolbachia* MAGs contigs.db
 * [4a-generate-coverage-data-for-GC.Rmd](files/script/snv_metapan/4a-generate-coverage-data-for-GC.Rmd): Generate coverage values of each metagenome and MLST+*wsp* genes at Gene Clusters (GCs) level for all the *Wolbachia* MAGs
 * [4b-generate-coverage-data-for-GC-O11-M11.Rmd](files/script/snv_metapan/4b-generate-coverage-data-for-GC-O11-M11.Rmd): Generate coverage values of each metagenome and MLST+*wsp* genes at Gene Clusters (GCs) level for *Wolbachia* MAGs M11 and O11
 * [5-add-coverage-data-to-pan.sh](files/script/snv_metapan/5-add-coverage-data-to-pan.sh): Add coverage values previously generated in pangenome databases
