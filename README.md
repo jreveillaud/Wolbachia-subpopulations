@@ -368,32 +368,3 @@ To study the *Wolbachia* variability and metapangenomics, you can run these scri
 * [10b-check-gene-cluster-coverage.Rmd](files/script/snv_metapan/10b-check-gene-cluster-coverage.Rmd): Plot the coverage of each metagenome to corresponding gene cluster from each *Wolbachia* MAG.
 
 
-# Explore the co-occurence of *Wolbachia* subpopulations accross additional *Wolbachia* metagenomes (from eggs)
-
-## Download eggs metagenomes
-
-| Sample name | ENA sample accession |
-|:-----------:|:--------------------:|
-| Istanbul    | SRR5810516           |
-| Harash      | SRR5810517           |
-| Tunis       | SRR5810518           |
-
-
-## Configuration files
-
-### Fasta file
-[ref_mode_fasta.txt](files/metadata/ref_mode_fasta.txt)
-
-### Sample file
-[samples_eggs.txt](files/metadata/samples_eggs.txt)
-
-### Config file
-[ref_mode_eggs_config.json](files/metadata/ref_mode_eggs_config.json)
-
-## Run the anvi'o metagenomics workflow using "references-mode"
-
-To run it:
-[run_metagenomics_ref_mode.sh](files/script/run_metagenomics_ref_mode.sh)
-
-The final anvi'o merged profile.db from references-mode are available at 10.5281/zenodo.7924651.
-
