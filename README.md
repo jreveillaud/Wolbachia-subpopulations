@@ -350,7 +350,8 @@ The FASTA files for individual bins are available at [10.5281/zenodo.7183304](10
 
 ## Run the anvi'o metagenomics workflow using "references-mode"
 
-The references-mode includes the same steps described above but it also allows to map all the metagenomes (midguts and ovaries) on each *Wolbachia* MAG we reconstructed. This mapping is essential to study the metapangenomics and the variability among *Wolbachia* subpopulations in our metagenomes. 
+The references-mode includes the same steps described above but it also allows to map all the metagenomes (midguts and ovaries) on each *Wolbachia* MAG we reconstructed. This mapping is essential to study the metapangenomics and the variability among *Wolbachia* subpopulations in our metagenomes.
+This workflow includes the profiling of genetic variability at nucleotide, codon and amino acid levels.
 
 To run it:
 [run_metagenomics_ref_mode.sh](files/script/run_metagenomics_ref_mode.sh)
@@ -376,7 +377,7 @@ The anvi'o merged profile.dbs from references-mode and with filtered mapping, as
 
 # Genetic variability analysis: inspecting SNVs, SNPs, SCVs and SAAVs
 
-* [6a-generate-variability-tables-and-interactive-snv.Rmd](files/script/snv_metapan/6a-generate-variability-tables-and-interactive-snv.Rmd): Generate variability tables (Single Nucleotide Variants, Single Codon Variants, Single Amino Acid Variants), indels/insertion tables at intra-sample and inter-sample levels
+* [6-generate-variability-tables.md](files/script/snv_metapan/6a-generate-variability-tables-and-interactive-snv.Rmd): Generate variability tables (Single Nucleotide Variants, Single Codon Variants, Single Amino Acid Variants), at intra-sample and inter-sample levels and add gene cluster information
 * [7-select-SNV-SCV-SAAVs.R](files/script/snv_metapan/7-select-SNV-SCV-SAAVs.R): Select SCVs and SAAVs generated from only the filtered SNVs for each *Wolbachia* MAG
 * [9a-SNV-figure-for-selected-splits.Rmd](files/script/snv_metapan/9a-SNV-figure-for-selected-splits.Rmd): Generate SNV and gene figures for selected splits from *Wolbachia* MAG O11 and O03. We then used Inskape to create the final SNV figures for these splits
 * [10a-generate-data-for-check-gene-cluster-coverage.sh](files/script/snv_metapan/10a-generate-data-for-check-gene-cluster-coverage.sh): Generate data for inspect the coverage of gene clusters in each *Wolbachia* MAG
