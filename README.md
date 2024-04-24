@@ -1,6 +1,6 @@
 This project describes the bioinformatic reproducible workflow associated to the paper "*Wolbachia* populations across organs of individual *Culex pipiens*: extremely conserved intra-individual core pangenome with some inter-individual polymorphisms".
 
-[1- Genome reconstruction](# Anvi'o metagenomic workflow and binning to reconstruct *Wolbachia* genomes)
+[1- Genome reconstruction](https://github.com/jreveillaud/Wolbachia-subpopulations/tree/main?tab=readme-ov-file#anvio-metagenomic-workflow-and-binning-to-reconstruct-wolbachia-genomes)
 
 
 # Anvi'o metagenomic workflow and binning to reconstruct *Wolbachia* genomes
