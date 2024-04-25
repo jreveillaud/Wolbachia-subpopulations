@@ -1,22 +1,28 @@
----
-title: "7b-SNP-figures"
-author: "Hans Schrieke, Blandine Trouche and Julie Reveillaud"
-date: "`r Sys.Date()`"
-output: 
-  github_document:
-    toc: true
-    toc_depth: 3
----
+7b-SNP-figures
+================
+Hans Schrieke, Blandine Trouche and Julie Reveillaud
+2024-04-25
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
-knitr::opts_knit$set(root.dir = "/Users/btrouche/Dropbox/RosaLind/SNV_Meren")
-```
+-   <a href="#figure-1a-summary-of-snp-positions"
+    id="toc-figure-1a-summary-of-snp-positions">Figure 1A: Summary of SNP
+    positions</a>
+-   <a href="#figure-1b-visualization-of-snps-in-gene-276-of-mag-o07"
+    id="toc-figure-1b-visualization-of-snps-in-gene-276-of-mag-o07">Figure
+    1B: Visualization of SNPs in gene 276 of MAG O07</a>
+-   <a
+    href="#figures-s5-s7-visualization-of-snps-in-gene-993-41-nd-611-of-mag-o12"
+    id="toc-figures-s5-s7-visualization-of-snps-in-gene-993-41-nd-611-of-mag-o12">Figures
+    S5-S7: Visualization of SNPs in gene 993, 41 nd 611 of MAG O12</a>
 
 ## Figure 1A: Summary of SNP positions
 
-```{r plot of shared, eval = TRUE, height = 16, width = 12}
+``` r
 library(ggplot2)
+```
+
+    ## Warning: package 'ggplot2' was built under R version 4.2.3
+
+``` r
 library(patchwork)
 library(forcats)
 
@@ -62,15 +68,22 @@ p <- ggplot(gcs, aes(x = factor(1), fill = sample_id)) +
         panel.grid.minor = element_blank())
 
 p
+```
 
+![](7b-SNP-figures_files/figure-gfm/plot%20of%20shared-1.png)<!-- -->
+
+``` r
 svg("12_SNP_figures/Fig1A_SNP_positions.svg", width=12, height=6)
 p 
 dev.off()
 ```
 
+    ## quartz_off_screen 
+    ##                 2
+
 ## Figure 1B: Visualization of SNPs in gene 276 of MAG O07
 
-```{zsh engine.opts='-i'}
+``` zsh
 # Get split coverage and SNPs from selected splits of Wolbachia MAGs
 # activate conda environment
 conda activate anvio-7.1
@@ -107,7 +120,7 @@ do
 done 
 ```
 
-```{zsh engine.opts='-i'}
+``` zsh
 # activate conda environment
 conda activate anvio-7.1
 
@@ -127,12 +140,12 @@ done
 
 ## Figures S5-S7: Visualization of SNPs in gene 993, 41 nd 611 of MAG O12
 
-List of splits / genes:   
+List of splits / genes:  
 - MAG O12, Culex_O12_000000008388, gene 993  
 - MAG O12, Culex_O12_000000068699,gene 41  
-- MAG O12, Culex_O12_000000221252, gene 611  
+- MAG O12, Culex_O12_000000221252, gene 611
 
-```{zsh engine.opts='-i'}
+``` zsh
 # Get split coverage and SNPs from selected splits of Wolbachia MAGs
 # activate conda environment
 conda activate anvio-7.1
@@ -169,7 +182,7 @@ do
 done 
 ```
 
-```{zsh engine.opts='-i'}
+``` zsh
 # Generate figures with filtered SNP tables
 # activate conda environment
 conda activate anvio-7.1
@@ -185,5 +198,3 @@ anvi-script-visualize-split-coverages -i 12_SNP_figures/${split}_coverage.txt \
                                     
 done
 ```
-
-
