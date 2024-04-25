@@ -1,7 +1,7 @@
 6-generate-variability-tables
 ================
 Hans Schrieke, Blandine Trouche and Julie Reveillaud
-2024-04-24
+2024-04-25
 
 -   <a href="#generate-raw-variability-tables"
     id="toc-generate-raw-variability-tables">Generate raw variability
@@ -94,45 +94,6 @@ mlst <- mlst %>% select(c(1:9))
 for(i in samples){
   snv <- read.table(paste0("07_RAW_VAR_TABLES/SNV_", i,".txt"), header=TRUE)
   
-  # raw intra-sample table 
-  snv_intra <- snv[snv$sample== paste0(i, "_filter20"), ]
-
-  # remove outliers snv
-  snv_wt_outlier <- snv[snv$cov_outlier_in_contig==0 & snv$cov_outlier_in_split==0, ]
-  
-  # filter entropy
-  snv_entropy <- snv_wt_outlier[snv_wt_outlier$entropy>=0.2 & snv_wt_outlier$departure_from_consensus>=0.2,]
-  
-  # prepare layers to add in profile.db of interactive
-  snv_layers <- snv_entropy
-  snv_layers$entry_id <- paste0("p_", sprintf("%08d", as.numeric(snv_layers$unique_pos)))
-  
-  # add SCG info
-  gene_clusters_sample <- gene_clusters[gene_clusters$genome_name==i,]
-  colnames(gene_clusters_sample)[5] <- "corresponding_gene_call"
-  snv_layers <- snv_layers %>% merge(gene_clusters_sample, by="corresponding_gene_call", all.x = TRUE)
-  snv_layers$corresponding_gene_call <- snv_layers$corresponding_gene_call %>% as.character()
-  snv_layers <- snv_layers %>% select(c(entry_id, everything()))
-  
-  # add MLST + wsp + cid info
-  snv_layers <- snv_layers %>% merge(mlst, by="gene_cluster_id", all.x = TRUE)
-  
-  # intra-sample
-  snv_entropy_sample <- snv_entropy[snv_entropy$sample==paste0(i, "_filter20"), ]
-  snv_layers_sample <- snv_layers[snv_layers$sample==paste0(i, "_filter20"), ]
-  
-  # change in coding gene call layer
-  snv_layers_sample[snv_layers_sample$corresponding_gene_call != -1 & snv_layers_sample$in_coding_gene_call==0, "in_coding_gene_call"] <- 2
-  snv_layers_sample$gene_coding <- snv_layers_sample$in_coding_gene_call %>% as.character() %>% as.factor()
-  snv_layers_sample$gene_coding %>% levels()
-  levels(snv_layers_sample$gene_coding) <- c("no coding gene", "coding gene", "partial gene")
-  
-  # change SCG layer
-  snv_layers_sample$SCG_proper <- snv_layers_sample$SCG%>% as.character() %>% as.factor()
-  levels(snv_layers_sample$SCG_proper) <- c("No", "Yes", "Out of gene")
-  snv_layers_sample[is.na(snv_layers_sample$SCG_proper), "SCG_proper"] <- "Out of gene"
-
-  #### ALSO ADD SCG INFO TO THE RAW TABLE, FOR SNP DETECTION
   snv_SCG <- snv
   snv_SCG$entry_id <- paste0("p_", sprintf("%08d", as.numeric(snv_SCG$unique_pos)))
   
@@ -144,12 +105,8 @@ for(i in samples){
   
   # add MLST + wsp + cid info
   snv_SCG <- snv_SCG %>% merge(mlst, by="gene_cluster_id", all.x = TRUE)
-  ####
   
   # save tables
-  write.table(snv_layers_sample, paste0("08_FILTERED_VAR_TABLES/SNV/SNV_", i, "_intra_filtered_SCG.txt"), 
-              sep="\t", quote=FALSE, row.names=FALSE)
-  
    write.table(snv_SCG, paste0("07_RAW_VAR_TABLES/SNV_", i, "_SCG.txt"), 
               sep="\t", quote=FALSE, row.names=FALSE)
 }

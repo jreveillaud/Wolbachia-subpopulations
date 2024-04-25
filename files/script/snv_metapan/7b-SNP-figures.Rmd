@@ -15,7 +15,7 @@ knitr::opts_knit$set(root.dir = "/Users/btrouche/Dropbox/RosaLind/SNV_Meren")
 
 ## Figure 1A: Summary of SNP positions
 
-```{r plot of shared, eval = TRUE, height = 16, width = 12}
+```{r plot of shared, eval = TRUE, height = 16, width = 12, message=FALSE, warning=FALSE}
 library(ggplot2)
 library(patchwork)
 library(forcats)

@@ -1,19 +1,27 @@
----
-title: "8-SNV-inspection"
-author: "Hans Schrieke, Blandine Trouche and Julie Reveillaud"
-date: "`r Sys.Date()`"
-output: 
-  github_document:
-    toc: true
-    toc_depth: 3
----
+8-SNV-inspection
+================
+Hans Schrieke, Blandine Trouche and Julie Reveillaud
+2024-04-25
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE, warning=FALSE, message=FALSE)
-knitr::opts_knit$set(root.dir = "/Users/btrouche/Dropbox/RosaLind/SNV_Meren")
-```
+-   <a href="#figure-s8" id="toc-figure-s8">Figure S8</a>
+-   <a href="#figures-s9-14-a-to-c" id="toc-figures-s9-14-a-to-c">Figures
+    S9-14 (A to C)</a>
+-   <a href="#figures-s9-14-d-coverage-correlation-plots"
+    id="toc-figures-s9-14-d-coverage-correlation-plots">Figures S9-14 (D);
+    coverage correlation plots</a>
+    -   <a href="#mag-m11-gene-301" id="toc-mag-m11-gene-301">MAG M11: gene
+        301</a>
+    -   <a href="#2b--mag-o11-gene-755" id="toc-2b--mag-o11-gene-755">2b- MAG
+        O11: gene 755</a>
+    -   <a href="#2c--mag-o03-gene-589" id="toc-2c--mag-o03-gene-589">2c- MAG
+        O03: gene 589</a>
+    -   <a href="#2d--mag-o07-gene-230" id="toc-2d--mag-o07-gene-230">2d- MAG
+        O07: gene 230</a>
+    -   <a href="#2e--mag-o12-gene-423-gene-640"
+        id="toc-2e--mag-o12-gene-423-gene-640">2e- MAG O12: gene 423, gene
+        640</a>
 
-```{r, eval = TRUE, message=FALSE, warning=FALSE}
+``` r
 library(tidyverse)
 library(data.table)
 library(ggplot2)
@@ -21,7 +29,7 @@ library(ggplot2)
 
 ## Figure S8
 
-```{r all MAGs, fig.height = 6, fig.width = 12, eval = TRUE}
+``` r
 samples_loop <- c("O11", "M11", "O03", "O07", "O12")
 
 df_all_MAGs <- data.frame()
@@ -87,7 +95,12 @@ df_all_MAGs2[df_all_MAGs2$SCG == "wSCG" & df_all_MAGs2$outlier != "outlier" &
 df_all_MAGs2 <- df_all_MAGs2 %>%
   group_by(SCG, SNV_type, MAG) %>%
   summarize(Freq = sum(total_count))
+```
 
+    ## `summarise()` has grouped output by 'SCG', 'SNV_type'. You can override using
+    ## the `.groups` argument.
+
+``` r
 # define factor order for clear plotting
 df_all_MAGs2$SNV_type <- factor(df_all_MAGs2$SNV_type, 
                          levels = c("SNVs in wSCGs passing filters (retained)",
@@ -118,86 +131,105 @@ q <- ggplot(df_all_MAGs2, aes(x = SCG, y = Freq, fill = SNV_type)) +
         panel.border = element_blank(),
         legend.text = element_text(size = 12)) 
 q
+```
 
+![](8-SNV-inspection_files/figure-gfm/all%20MAGs-1.png)<!-- -->
+
+``` r
 # save as svg for touch-ups in affinity designer
-svg("11_SNV_figures/Fig1_barplot_stacked_by_MAG_nolegend.svg", width=8, height=6)
+svg("11_snv_figures/Fig1_barplot_stacked_by_MAG_nolegend.svg", width=8, height=6)
 q + theme(legend.position = "none")
 dev.off()
+```
 
-svg("11_SNV_figures/Fig1_barplot_stacked_by_MAG.svg", width=12, height=6)
+    ## quartz_off_screen 
+    ##                 2
+
+``` r
+svg("11_snv_figures/Fig1_barplot_stacked_by_MAG.svg", width=12, height=6)
 q 
 dev.off()
 ```
 
-## Figures S9-14: visualization of SNVs in gene context
+    ## quartz_off_screen 
+    ##                 2
 
-List of splits / genes: 
-- MAG M11, Culex_M11_000000026618_split_00001, gene 301  
-- MAG O11, Culex_O11_000000098617_split_00001, gene 755  
-- MAG O03, Culex_O03_000000128791_split_00001, gene 589  
-- MAG O07, Culex_O07_000000082262_split_00001, gene 230  
-- MAG O12, Culex_O12_000000005804_split_00001, gene 423  
-- MAG O12, Culex_O12_000000099075_split_00001, gene 640  
+## Figures S9-14 (A to C)
 
-
-```{zsh engine.opts='-i'}
+``` zsh
 # Get split coverage and SNVs from selected split of Wolbachia O11 MAG
 # activate conda environment
 conda activate anvio-7.1
 
 # move to work directory
-# cd your/path/here
+cd /Users/btrouche/Dropbox/RosaLind/SNV_Meren
 
 # create specific folder for outputs
-mkdir -p 11_SNV_figures
+mkdir -p 11_snv_figures
 
-# gene level information extraction
-for split in Culex_M11_000000026618_split_00001_gene_301 \
-              Culex_O11_000000098617_split_00001_gene_755 \
-              Culex_O03_000000128791_split_00001_gene_589 \
-              Culex_O07_000000082262_split_00001_gene_230 \
-              Culex_O12_000000005804_split_00001_gene_423 \
-              Culex_O12_000000099075_split_00001_gene_640
-do
+# Split from O11 
+# get coverage from splits of interest of O11 for SNV visualization
+anvi-get-split-coverages -p 06_MERGED_references_mode/O11_filtered/PROFILE.db \
+                         -c 03_CONTIGS_references_mode/O11-contigs.db \
+                         --split-name Culex_O11_000000098617_split_00001 \
+                         -o 11_snv_figures/Culex_O11_000000098617_split_00001_coverage.txt
 
-  MAG=$(echo ${split} | cut -d '_' -f 2)
-  gene=$(echo ${split} | cut -d '_' -f 7)
-  
-  # get coverage from splits of interest for SNV visualization
-  anvi-get-split-coverages -p 06_MERGED_references_mode/${MAG}_filtered/PROFILE.db \
-                         -c 03_CONTIGS_references_mode/${MAG}-contigs.db \
-                         --gene-caller-id ${gene} \
-                         -o 11_SNV_figures/${MAG}/${split}_coverage.txt
-  
-  # generate variability table from splits of interests 
-  # this has to be in a file
-  echo ${split} > 11_SNV_figures/split_of_interest.txt
-  
-  anvi-gen-variability-profile -p 06_MERGED_references_mode/${MAG}_filtered/PROFILE.db \
-                             -c 03_CONTIGS_references_mode/${MAG}-contigs.db \
-                             --gene-caller-ids ${gene} \
+anvi-get-split-coverages -p 06_MERGED_references_mode/O11_filtered/PROFILE.db \
+                         -c 03_CONTIGS_references_mode/O11-contigs.db \
+                         --gene-caller-id 755 \
+                         -o 11_snv_figures/Culex_O11_000000098617_split_00001_gene_coverage.txt
+
+
+# generate SNV table from splits of interests of O11
+# this has to be in a file
+echo Culex_O11_000000098617_split_00001 > 11_snv_figures/split_of_interest.txt
+
+anvi-gen-variability-profile -p 06_MERGED_references_mode/O11_filtered/PROFILE.db \
+                             -c 03_CONTIGS_references_mode/O11-contigs.db \
+                             --splits-of-interest 11_snv_figures/split_of_interest.txt \
                              --include-split-names \
                              --include-contig-names \
-                             -o 11_SNV_figures/${MAG}/${split}_SNVs.txt
-  
-done 
+                             -o 11_snv_figures/Culex_O11_000000098617_split_00001_SNVs.txt
+
+anvi-gen-variability-profile -p 06_MERGED_references_mode/O11_filtered/PROFILE.db \
+                             -c 03_CONTIGS_references_mode/O11-contigs.db \
+                             --gene-caller-ids 755 \
+                             --include-split-names \
+                             --include-contig-names \
+                             -o 11_snv_figures/Culex_O11_000000098617_split_00001_gene_SNVs.txt
 ```
 
-```{r, eval = TRUE}
-# Filter SNVs to produce the different levels of plot
+``` r
+# Filter SNVs
 # packages
 require(tidyverse)
 
-splits <- c("Culex_M11_000000026618_split_00001_gene_301",
-              "Culex_O11_000000098617_split_00001_gene_755",
-              "Culex_O03_000000128791_split_00001_gene_589",
-              "Culex_O07_000000082262_split_00001_gene_230",
-              "Culex_O12_000000005804_split_00001_gene_423",
-              "Culex_O12_000000099075_split_00001_gene_640")
+# import SNV table
+splits <- c("Culex_O11_000000098617_split_00001")
+  
+for(i in splits){
+  snv <- read.table(paste0("11_snv_figures/", i, "_SNVs.txt"), header=TRUE)
+  cov <- read.table(paste0("11_snv_figures/", i, "_coverage.txt"), header=TRUE)
+
+  # filter the SNV table by removing the outliers
+  snv_wt_outlier <- snv[snv$cov_outlier_in_contig==0 & snv$cov_outlier_in_split==0, ]
+
+  # filter the SNV table by entropy and departure from consensus
+  snv_entropy <- snv_wt_outlier[snv_wt_outlier$entropy>=0.2,]
+  snv_dep <- snv_entropy[snv_entropy$departure_from_consensus>=0.2,]
+
+  # export snv tables
+  write.table(snv_wt_outlier, paste0("11_snv_figures/", i, "_SNVs_wt_outliers.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(snv_dep, paste0("11_snv_figures/", i, "_SNVs_filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(cov, paste0("11_snv_figures/", i, "_coverage.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+}
+
+
+splits <- c("Culex_O11_000000098617_split_00001")
 
 for(i in splits){
-  snv <- read.table(paste0("11_SNV_figures/", MAG, i, "_gene_SNVs.txt"), header=TRUE)
-  cov <- read.table(paste0("11_SNV_figures/",MAG, i, "_gene_coverage.txt"), header=TRUE)
+  snv <- read.table(paste0("11_snv_figures/", i, "_gene_SNVs.txt"), header=TRUE)
+  cov <- read.table(paste0("11_snv_figures/", i, "_gene_coverage.txt"), header=TRUE)
   
   cov$gene_caller_id <- i
   colnames(cov)[3] <- "split_name"
@@ -210,70 +242,79 @@ for(i in splits){
   snv_dep <- snv_entropy[snv_entropy$departure_from_consensus>=0.2,]
 
   # export snv tables
-  write.table(snv_wt_outlier, paste0("11_SNV_figures/", MAG,  i, "_gene_SNVs_no_outliers.txt"), sep="\t", quote=FALSE, row.names=FALSE)
-  write.table(snv_dep, paste0("11_SNV_figures/", MAG, i, "_gene_SNVs_filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
-  write.table(cov, paste0("11_SNV_figures/", MAG, i, "_gene_coverage.txt"), sep="\t", quote=FALSE, row.names=FALSE)
-}
-
-#########
-for(i in splits){
-  SNP <- read.table(paste0("12_SNP_figures/", i, "_SNPs.txt"), header=TRUE)
-  cov <- read.table(paste0("12_SNP_figures/", i, "_coverage.txt"), header=TRUE)
-  
-  cov$gene_caller_id <- gsub(pattern = "_gene_.*", replacement = "", i)
-  colnames(cov)[3] <- "split_name"
-
-  # filter the SNP table to remove outliers (I don't remove SNVs, just in case)
-  SNP_no_outlier <- SNP[SNP$cov_outlier_in_contig==0 & SNP$cov_outlier_in_split==0, ]
-  #SNP_no_outlier <- SNP_no_outlier[SNP_no_outlier$departure_from_reference >= 0.98,]
-
-  # export SNP tables
-  write.table(SNP_no_outlier, paste0("12_SNP_figures/", i, "_SNPs_no_outliers.txt"), sep="\t", quote=FALSE, row.names=FALSE)
-  write.table(cov, paste0("12_SNP_figures/", i, "_coverage.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(snv_wt_outlier, paste0("11_snv_figures/", i, "_gene_SNVs_wt_outliers.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(snv_dep, paste0("11_snv_figures/", i, "_gene_SNVs_filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(cov, paste0("11_snv_figures/", i, "_gene_coverage.txt"), sep="\t", quote=FALSE, row.names=FALSE)
 }
 ```
 
-```{zsh engine.opts='-i'}
+``` zsh
 # Generate figures with filtered SNV tables
 # activate conda environment
 conda activate anvio-7.1
 
-echo O11_filter20 > 11_SNV_figures/sample_of_interest.txt
+# move to work directory
+cd /Users/btrouche/Dropbox/RosaLind/SNV_Meren
+
+echo O11_filter20 > 11_snv_figures/sample_of_interest.txt
 # don't forget to add header "sample_name"
 
 # for split in Culex_O11_000000098617_split_00001_gene
-for split in Culex_O11_000000098617_split_00001_gene 
+for split in Culex_O11_000000098617_split_00001 Culex_O11_000000098617_split_00001_gene 
 do
 
+# generate pdf of split of interest (without SNVs)                        
+anvi-script-visualize-split-coverages -i 11_snv_figures/${split}_coverage.txt \
+                                      -o 11_snv_figures/${split}_inspect.pdf \
+                                      -m 600
+
 # generate pdf of splits of interest with SNVs
-anvi-script-visualize-split-coverages -i 11_SNV_figures/${MAG}/${split}_coverage.txt \
-                                      -o 11_SNV_figures/${MAG}/${split}_inspect_SNV.pdf \
-                                      --snv-data 11_SNV_figures/${MAG}/${split}_SNVs.txt \
-                                      -s 11_SNV_figures/sample_of_interest.txt \
+anvi-script-visualize-split-coverages -i 11_snv_figures/${split}_coverage.txt \
+                                      -o 11_snv_figures/${split}_inspect_SNV.pdf \
+                                      --snv-data 11_snv_figures/${split}_SNVs.txt \
+                                      -s 11_snv_figures/sample_of_interest.txt \
+                                      -m 600
+
+# generate pdf of splits of interest with SNVs all samples
+anvi-script-visualize-split-coverages -i 11_snv_figures/${split}_coverage.txt \
+                                      -o 11_snv_figures/${split}_inspect_SNV_all_samples.pdf \
+                                      --snv-data 11_snv_figures/${split}_SNVs.txt \
                                       -m 600
 
 # generate pdf of splits of interest with non-outliers SNVs
-anvi-script-visualize-split-coverages -i 11_SNV_figures/${MAG}/${split}_coverage.txt \
-                                      -o 11_SNV_figures/${MAG}/${split}_inspect_SNV_wt_outliers.pdf \
-                                      --snv-data 11_SNV_figures/${MAG}/${split}_SNVs_wt_outliers.txt \
-                                      -s 11_SNV_figures/sample_of_interest.txt \
+anvi-script-visualize-split-coverages -i 11_snv_figures/${split}_coverage.txt \
+                                      -o 11_snv_figures/${split}_inspect_SNV_wt_outliers.pdf \
+                                      --snv-data 11_snv_figures/${split}_SNVs_wt_outliers.txt \
+                                      -s 11_snv_figures/sample_of_interest.txt \
                                       -m 600
 
+# generate pdf of splits of interest with non-outliers SNVs all samples
+anvi-script-visualize-split-coverages -i 11_snv_figures/${split}_coverage.txt \
+                                      -o 11_snv_figures/${split}_inspect_SNV_wt_outliers_all_samples.pdf \
+                                      --snv-data 11_snv_figures/${split}_SNVs_wt_outliers.txt \
+                                      -m 600
+                                      
 # generate pdf of splits of interest with filtered SNVs
-anvi-script-visualize-split-coverages -i 11_SNV_figures/${MAG}/${split}_coverage.txt \
-                                      -o 11_SNV_figures/${MAG}/${split}_inspect_SNV_filtered.pdf \
-                                      --snv-data 11_SNV_figures/${MAG}/${split}_SNVs_filtered.txt \
-                                      -s 11_SNV_figures/sample_of_interest.txt \
+anvi-script-visualize-split-coverages -i 11_snv_figures/${split}_coverage.txt \
+                                      -o 11_snv_figures/${split}_inspect_SNV_filtered.pdf \
+                                      --snv-data 11_snv_figures/${split}_SNVs_filtered.txt \
+                                      -s 11_snv_figures/sample_of_interest.txt \
+                                      -m 600
+
+# generate pdf of splits of interest with filtered SNVs all samples
+anvi-script-visualize-split-coverages -i 11_snv_figures/${split}_coverage.txt \
+                                      -o 11_snv_figures/${split}_inspect_SNV_filtered_all_samples.pdf \
+                                      --snv-data 11_snv_figures/${split}_SNVs_filtered.txt \
                                       -m 600
 
 done
 ```
 
-## Figures S9-14: coverage correlation plots
+## Figures S9-14 (D); coverage correlation plots
 
 ### MAG M11: gene 301
 
-```{r coverage correlation M11, eval = TRUE}
+``` r
 library(ggpmisc)
 
 # M11
@@ -298,9 +339,9 @@ ggplot(snv_M11_301, aes(y=departure_from_consensus, x=coverage)) +
   ggtitle("GENE 301 in MAG M11")
 ```
 
-### MAG O11: gene 755
+### 2b- MAG O11: gene 755
 
-```{r coverage correlation O11, eval = TRUE}
+``` r
 # O11
 snv_O11 <- read.table("07_RAW_VAR_TABLES/SNV_O11.txt", 
                       header=TRUE, fill=TRUE, sep="\t", quote = "")
@@ -337,9 +378,9 @@ ggplot(snv_O11_755, aes(y=departure_from_consensus, x=coverage)) +
   ggtitle("GENE 755 in MAG O11")
 ```
 
-### MAG O03: gene 589
+### 2c- MAG O03: gene 589
 
-```{r coverage correlation O03, eval = TRUE}
+``` r
 # O03
 snv_O03 <- read.table("07_RAW_VAR_TABLES/SNV_O03.txt", 
                       header=TRUE, fill=TRUE, sep="\t", quote = "")
@@ -362,9 +403,9 @@ ggplot(snv_O03_589, aes(y=departure_from_consensus, x=coverage)) +
   ggtitle("GENE 589 in MAG O03")
 ```
 
-### MAG O07: gene 230
+### 2d- MAG O07: gene 230
 
-```{r coverage correlation O07, eval = TRUE}
+``` r
 # O07
 snv_O07 <- read.table("07_RAW_VAR_TABLES/SNV_O07.txt", 
                       header=TRUE, fill=TRUE, sep="\t", quote = "")
@@ -387,9 +428,9 @@ ggplot(snv_O07_230, aes(y=departure_from_consensus, x=coverage)) +
   ggtitle("GENE 230 in MAG O07")
 ```
 
-### MAG O12: gene 423
+### 2e- MAG O12: gene 423, gene 640
 
-```{r coverage correlation O12 firs, eval = TRUEt}
+``` r
 # O12
 snv_O12 <- read.table("07_RAW_VAR_TABLES/SNV_O12.txt", 
                       header=TRUE, fill=TRUE, sep="\t", quote = "")
@@ -412,9 +453,7 @@ ggplot(snv_O12_423, aes(y=departure_from_consensus, x=coverage)) +
   ggtitle("GENE 423 in MAG O12")
 ```
 
-### MAG O12: gene 640
-
-```{r coverage correlation O12 second, eval = TRUE}
+``` r
 # O12
 snv_O12 <- read.table("07_RAW_VAR_TABLES/SNV_O12.txt", 
                       header=TRUE, fill=TRUE, sep="\t", quote = "")
@@ -436,5 +475,3 @@ ggplot(snv_O12_640, aes(y=departure_from_consensus, x=coverage)) +
   theme_classic() +
   ggtitle("GENE 640 in MAG O12")
 ```
-
-
