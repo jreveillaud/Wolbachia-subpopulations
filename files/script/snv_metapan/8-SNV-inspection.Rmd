@@ -19,7 +19,7 @@ library(data.table)
 library(ggplot2)
 ```
 
-## Figure S8
+## Figure S8: illustration of SNV filtering
 
 ```{r all MAGs, fig.height = 6, fig.width = 12, eval = TRUE}
 samples_loop <- c("O11", "M11", "O03", "O07", "O12")
@@ -117,7 +117,7 @@ q <- ggplot(df_all_MAGs2, aes(x = SCG, y = Freq, fill = SNV_type)) +
         panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.border = element_blank(),
         legend.text = element_text(size = 12)) 
-q
+q + theme(legend.position = "bottom", legend.direction="vertical")
 
 # save as svg for touch-ups in affinity designer
 svg("11_SNV_figures/Fig1_barplot_stacked_by_MAG_nolegend.svg", width=8, height=6)
@@ -163,16 +163,15 @@ do
   MAG=$(echo ${split} | cut -d '_' -f 2)
   gene=$(echo ${split} | cut -d '_' -f 7)
   
+  mkdir -p 11_SNV_figures/${MAG}
+  
   # get coverage from splits of interest for SNV visualization
   anvi-get-split-coverages -p 06_MERGED_references_mode/${MAG}_filtered/PROFILE.db \
                          -c 03_CONTIGS_references_mode/${MAG}-contigs.db \
                          --gene-caller-id ${gene} \
                          -o 11_SNV_figures/${MAG}/${split}_coverage.txt
   
-  # generate variability table from splits of interests 
-  # this has to be in a file
-  echo ${split} > 11_SNV_figures/split_of_interest.txt
-  
+  # generate variability table from genes of interests 
   anvi-gen-variability-profile -p 06_MERGED_references_mode/${MAG}_filtered/PROFILE.db \
                              -c 03_CONTIGS_references_mode/${MAG}-contigs.db \
                              --gene-caller-ids ${gene} \
@@ -196,40 +195,29 @@ splits <- c("Culex_M11_000000026618_split_00001_gene_301",
               "Culex_O12_000000099075_split_00001_gene_640")
 
 for(i in splits){
-  snv <- read.table(paste0("11_SNV_figures/", MAG, i, "_gene_SNVs.txt"), header=TRUE)
-  cov <- read.table(paste0("11_SNV_figures/",MAG, i, "_gene_coverage.txt"), header=TRUE)
+  MAG <- sapply(strsplit(i, "_"), "[", 2)
+  gene <- sapply(strsplit(i, "_"), "[", 7)
   
-  cov$gene_caller_id <- i
-  colnames(cov)[3] <- "split_name"
-
-  # filter the SNV table by removing the outliers
-  snv_wt_outlier <- snv[snv$cov_outlier_in_contig==0 & snv$cov_outlier_in_split==0, ]
-
-  # filter the SNV table by entropy and departure from consensus
-  snv_entropy <- snv_wt_outlier[snv_wt_outlier$entropy>=0.2,]
-  snv_dep <- snv_entropy[snv_entropy$departure_from_consensus>=0.2,]
-
-  # export snv tables
-  write.table(snv_wt_outlier, paste0("11_SNV_figures/", MAG,  i, "_gene_SNVs_no_outliers.txt"), sep="\t", quote=FALSE, row.names=FALSE)
-  write.table(snv_dep, paste0("11_SNV_figures/", MAG, i, "_gene_SNVs_filtered.txt"), sep="\t", quote=FALSE, row.names=FALSE)
-  write.table(cov, paste0("11_SNV_figures/", MAG, i, "_gene_coverage.txt"), sep="\t", quote=FALSE, row.names=FALSE)
-}
-
-#########
-for(i in splits){
-  SNP <- read.table(paste0("12_SNP_figures/", i, "_SNPs.txt"), header=TRUE)
-  cov <- read.table(paste0("12_SNP_figures/", i, "_coverage.txt"), header=TRUE)
+  snv <- read.table(paste0("11_SNV_figures/", MAG, "/", i, "_SNVs.txt"), header=TRUE)
+  cov <- read.table(paste0("11_SNV_figures/", MAG, "/", i, "_coverage.txt"), header=TRUE)
   
   cov$gene_caller_id <- gsub(pattern = "_gene_.*", replacement = "", i)
   colnames(cov)[3] <- "split_name"
 
-  # filter the SNP table to remove outliers (I don't remove SNVs, just in case)
-  SNP_no_outlier <- SNP[SNP$cov_outlier_in_contig==0 & SNP$cov_outlier_in_split==0, ]
-  #SNP_no_outlier <- SNP_no_outlier[SNP_no_outlier$departure_from_reference >= 0.98,]
+  # filter the SNV table by removing the outliers
+  snv_no_outlier <- snv[snv$cov_outlier_in_contig==0 & snv$cov_outlier_in_split==0, ]
 
-  # export SNP tables
-  write.table(SNP_no_outlier, paste0("12_SNP_figures/", i, "_SNPs_no_outliers.txt"), sep="\t", quote=FALSE, row.names=FALSE)
-  write.table(cov, paste0("12_SNP_figures/", i, "_coverage.txt"), sep="\t", quote=FALSE, row.names=FALSE)
+  # filter the SNV table by entropy and departure from consensus
+  snv_entropy <- snv_no_outlier[snv_no_outlier$entropy >= 0.2, ]
+  snv_dep <- snv_entropy[snv_entropy$departure_from_consensus >= 0.2, ]
+
+  # export snv tables
+  write.table(snv_no_outlier, paste0("11_SNV_figures/", MAG, "/",  i, "_SNVs_no_outliers.txt"), 
+              sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(snv_dep, paste0("11_SNV_figures/", MAG, "/", i, "_SNVs_filtered.txt"), 
+              sep="\t", quote=FALSE, row.names=FALSE)
+  write.table(cov, paste0("11_SNV_figures/", MAG, "/", i, "_coverage.txt"), 
+              sep="\t", quote=FALSE, row.names=FALSE)
 }
 ```
 
@@ -238,29 +226,35 @@ for(i in splits){
 # activate conda environment
 conda activate anvio-7.1
 
-echo O11_filter20 > 11_SNV_figures/sample_of_interest.txt
-# don't forget to add header "sample_name"
-
-# for split in Culex_O11_000000098617_split_00001_gene
-for split in Culex_O11_000000098617_split_00001_gene 
+for split in Culex_M11_000000026618_split_00001_gene_301 \
+              Culex_O11_000000098617_split_00001_gene_755 \
+              Culex_O03_000000128791_split_00001_gene_589 \
+              Culex_O07_000000082262_split_00001_gene_230 \
+              Culex_O12_000000005804_split_00001_gene_423 \
+              Culex_O12_000000099075_split_00001_gene_640
 do
 
-# generate pdf of splits of interest with SNVs
-anvi-script-visualize-split-coverages -i 11_SNV_figures/${MAG}/${split}_coverage.txt \
+  MAG=$(echo ${split} | cut -d '_' -f 2)
+  gene=$(echo ${split} | cut -d '_' -f 7)
+  
+  echo sample_name"\n"${MAG}_filter20 > 11_SNV_figures/sample_of_interest.txt
+
+  # generate pdf of splits of interest with SNVs
+  anvi-script-visualize-split-coverages -i 11_SNV_figures/${MAG}/${split}_coverage.txt \
                                       -o 11_SNV_figures/${MAG}/${split}_inspect_SNV.pdf \
                                       --snv-data 11_SNV_figures/${MAG}/${split}_SNVs.txt \
                                       -s 11_SNV_figures/sample_of_interest.txt \
                                       -m 600
 
-# generate pdf of splits of interest with non-outliers SNVs
-anvi-script-visualize-split-coverages -i 11_SNV_figures/${MAG}/${split}_coverage.txt \
-                                      -o 11_SNV_figures/${MAG}/${split}_inspect_SNV_wt_outliers.pdf \
-                                      --snv-data 11_SNV_figures/${MAG}/${split}_SNVs_wt_outliers.txt \
+  # generate pdf of splits of interest with non-outliers SNVs
+  anvi-script-visualize-split-coverages -i 11_SNV_figures/${MAG}/${split}_coverage.txt \
+                                      -o 11_SNV_figures/${MAG}/${split}_inspect_SNV_no_outliers.pdf \
+                                      --snv-data 11_SNV_figures/${MAG}/${split}_SNVs_no_outliers.txt \
                                       -s 11_SNV_figures/sample_of_interest.txt \
                                       -m 600
 
-# generate pdf of splits of interest with filtered SNVs
-anvi-script-visualize-split-coverages -i 11_SNV_figures/${MAG}/${split}_coverage.txt \
+  # generate pdf of splits of interest with filtered SNVs
+  anvi-script-visualize-split-coverages -i 11_SNV_figures/${MAG}/${split}_coverage.txt \
                                       -o 11_SNV_figures/${MAG}/${split}_inspect_SNV_filtered.pdf \
                                       --snv-data 11_SNV_figures/${MAG}/${split}_SNVs_filtered.txt \
                                       -s 11_SNV_figures/sample_of_interest.txt \
@@ -280,22 +274,51 @@ library(ggpmisc)
 snv_M11 <- read.table("07_RAW_VAR_TABLES/SNV_M11.txt", 
                       header=TRUE, fill=TRUE, sep="\t", quote = "")
 
+# we want to look at a specific gene
 snv_M11_301 <- snv_M11[snv_M11$corresponding_gene_call == 301, ]
+# we are only interested in intra-sample comparison
+snv_M11_301 <- snv_M11_301[snv_M11_301$sample_id == "M11_filter20",]
 
-# à faire pour chaque gène wSCG qui montre un/des SNVs
+# compute correlation info
 r <- round(cor(snv_M11_301$departure_from_consensus, snv_M11_301$coverage), 2)
 p <- cor.test(snv_M11_301$departure_from_consensus, snv_M11_301$coverage)$p.value
 
-ggplot(snv_M11_301, aes(y=departure_from_consensus, x=coverage)) + 
+plot_noinfo <- ggplot(snv_M11_301, aes(y=departure_from_consensus, x=coverage)) + 
   geom_smooth(method="lm", col="black") + 
-  geom_point(aes(color = as.character(cov_outlier_in_contig))) +
+  geom_point(aes(color = as.character(cov_outlier_in_contig)), size = 3) +
+  labs(x = "Coverage", y = "Departure from consensus", color = "Coverage outlier") +
+  theme_bw() +
+  theme(axis.title = element_text(face = "bold", size = 14),
+        axis.text = element_text(size = 12),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+plot_full <- ggplot(snv_M11_301, aes(y=departure_from_consensus, x=coverage)) + 
+  geom_smooth(method="lm", col="black") + 
+  geom_point(aes(color = as.character(cov_outlier_in_contig)), size = 3) +
+  labs(x = "Coverage", y = "Departure from consensus", color = "Coverage outlier") +
   stat_poly_eq(formula = y~x, 
                aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")), 
                parse = TRUE, label.x = "left", label.y = "top", size = 4) +
   annotate("text", y = 0.4, x = 140, label=paste0("correlation = ", r), hjust = 0) +
   annotate("text", y = 0.35, x = 140, label=paste0("p-value = ", p), hjust = 0) +
-  theme_classic() +
-  ggtitle("GENE 301 in MAG M11")
+  theme_bw() +
+  theme(axis.title = element_text(face = "bold", size = 14),
+        axis.text = element_text(size = 12),
+        legend.title = element_text(face = "bold", size = 14),
+        legend.text = element_text(size = 12),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+plot_full
+
+# save plots as svg for touch-ups in Affinity designer
+svg("11_SNV_figures/M11_gene301_noinfo.svg", width=8, height=6)
+plot_noinfo
+dev.off()
+
+svg("11_SNV_figures/M11_gene301.svg", width=8, height=6)
+plot_full
+dev.off()
 ```
 
 ### MAG O11: gene 755
@@ -306,35 +329,48 @@ snv_O11 <- read.table("07_RAW_VAR_TABLES/SNV_O11.txt",
                       header=TRUE, fill=TRUE, sep="\t", quote = "")
 
 snv_O11_755 <- snv_O11[snv_O11$corresponding_gene_call == 755, ]
-
-# à faire pour chaque gène wSCG qui montre un/des SNVs
-library(ggpmisc)
+# we are only interested in intra-sample comparison
+snv_O11_755 <- snv_O11_755[snv_O11_755$sample_id == "O11_filter20",]
 
 r <- round(cor(snv_O11_755$departure_from_consensus, snv_O11_755$coverage), 2)
 p <- cor.test(snv_O11_755$departure_from_consensus, snv_O11_755$coverage)$p.value
 
-ggplot(snv_O11_755, aes(y=departure_from_consensus, x=coverage)) + 
+plot_noinfo <- ggplot(snv_O11_755, aes(y=departure_from_consensus, x=coverage)) + 
   geom_smooth(method="lm", col="black") + 
-  geom_point(aes(color = cov_outlier_in_contig)) +
-  stat_poly_eq(formula = y~x, 
-               aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")), 
-               parse = TRUE, label.x = "left", label.y = "top", size = 4) +
-  annotate("text", y = 0.4, x = 420, label=paste0("correlation = ", r), hjust = 0) +
-  annotate("text", y = 0.35, x = 420, label=paste0("p-value = ", p), hjust = 0) +
-  theme_classic() +
-  geom_abline(slope = 0, intercept = 0.2, color = "red") +
-  ggtitle("GENE 755 in MAG O11")
+  geom_point(aes(color = as.character(cov_outlier_in_contig)), size = 3) +
+  labs(x = "Coverage", y = "Departure from consensus", color = "Coverage outlier") +
+  theme_bw() +
+  theme(axis.title = element_text(face = "bold", size = 14),
+        axis.text = element_text(size = 12),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
 
-ggplot(snv_O11_755, aes(y=departure_from_consensus, x=coverage)) + 
+plot_full <- ggplot(snv_O11_755, aes(y=departure_from_consensus, x=coverage)) + 
   geom_smooth(method="lm", col="black") + 
-  geom_point(aes(color = cov_outlier_in_contig)) +
+  geom_point(aes(color = as.character(cov_outlier_in_contig)), size = 3) +
+  labs(x = "Coverage", y = "Departure from consensus", color = "Coverage outlier") +
   stat_poly_eq(formula = y~x, 
                aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")), 
                parse = TRUE, label.x = "left", label.y = "top", size = 4) +
   annotate("text", y = 0.4, x = 420, label=paste0("correlation = ", r), hjust = 0) +
   annotate("text", y = 0.35, x = 420, label=paste0("p-value = ", p), hjust = 0) +
-  theme_classic() +
-  ggtitle("GENE 755 in MAG O11")
+  theme_bw() +
+  theme(axis.title = element_text(face = "bold", size = 14),
+        axis.text = element_text(size = 12),
+        legend.title = element_text(face = "bold", size = 14),
+        legend.text = element_text(size = 12),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+plot_full
+
+# save plots as svg for touch-ups in Affinity designer
+svg("11_SNV_figures/O11_gene755_noinfo.svg", width=8, height=6)
+plot_noinfo
+dev.off()
+
+svg("11_SNV_figures/O11_gene755.svg", width=8, height=6)
+plot_full
+dev.off()
 ```
 
 ### MAG O03: gene 589
@@ -345,21 +381,48 @@ snv_O03 <- read.table("07_RAW_VAR_TABLES/SNV_O03.txt",
                       header=TRUE, fill=TRUE, sep="\t", quote = "")
 
 snv_O03_589 <- snv_O03[snv_O03$corresponding_gene_call == 589, ]
+# we are only interested in intra-sample comparison
+snv_O03_589 <- snv_O03_589[snv_O03_589$sample_id == "O03_filter20",]
 
-# à faire pour chaque gène wSCG qui montre un/des SNVs
 r <- round(cor(snv_O03_589$departure_from_consensus, snv_O03_589$coverage), 2)
 p <- cor.test(snv_O03_589$departure_from_consensus, snv_O03_589$coverage)$p.value
 
-ggplot(snv_O03_589, aes(y=departure_from_consensus, x=coverage)) + 
+plot_noinfo <- ggplot(snv_O03_589, aes(y=departure_from_consensus, x=coverage)) + 
   geom_smooth(method="lm", col="black") + 
-  geom_point(aes(color = as.character(cov_outlier_in_contig))) +
+  geom_point(aes(color = as.character(cov_outlier_in_contig)), size = 3) +
+  labs(x = "Coverage", y = "Departure from consensus", color = "Coverage outlier") +
+  theme_bw() +
+  theme(axis.title = element_text(face = "bold", size = 14),
+        axis.text = element_text(size = 12),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+plot_full <- ggplot(snv_O03_589, aes(y=departure_from_consensus, x=coverage)) + 
+  geom_smooth(method="lm", col="black") + 
+  geom_point(aes(color = as.character(cov_outlier_in_contig)), size = 3) +
+  labs(x = "Coverage", y = "Departure from consensus", color = "Coverage outlier") +
   stat_poly_eq(formula = y~x, 
                aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")), 
                parse = TRUE, label.x = "left", label.y = "top", size = 4) +
   annotate("text", y = 0.4, x = 200, label=paste0("correlation = ", r), hjust = 0) +
   annotate("text", y = 0.35, x = 200, label=paste0("p-value = ", p), hjust = 0) +
-  theme_classic() +
-  ggtitle("GENE 589 in MAG O03")
+  theme_bw() +
+  theme(axis.title = element_text(face = "bold", size = 14),
+        axis.text = element_text(size = 12),
+        legend.title = element_text(face = "bold", size = 14),
+        legend.text = element_text(size = 12),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+plot_full
+
+# save plots as svg for touch-ups in Affinity designer
+svg("11_SNV_figures/O03_gene589_noinfo.svg", width=8, height=6)
+plot_noinfo
+dev.off()
+
+svg("11_SNV_figures/O03_gene589.svg", width=8, height=6)
+plot_full
+dev.off()
 ```
 
 ### MAG O07: gene 230
@@ -370,46 +433,98 @@ snv_O07 <- read.table("07_RAW_VAR_TABLES/SNV_O07.txt",
                       header=TRUE, fill=TRUE, sep="\t", quote = "")
 
 snv_O07_230 <- snv_O07[snv_O07$corresponding_gene_call == 230, ]
+snv_O07_230 <- snv_O07_230[snv_O07_230$sample_id == "O07_filter20",]
 
-# à faire pour chaque gène wSCG qui montre un/des SNVs
 r <- round(cor(snv_O07_230$departure_from_consensus, snv_O07_230$coverage), 2)
 p <- cor.test(snv_O07_230$departure_from_consensus, snv_O07_230$coverage)$p.value
 
-ggplot(snv_O07_230, aes(y=departure_from_consensus, x=coverage)) + 
+plot_noinfo <- ggplot(snv_O07_230, aes(y=departure_from_consensus, x=coverage)) + 
   geom_smooth(method="lm", col="black") + 
-  geom_point(aes(color = as.character(cov_outlier_in_contig))) +
+  geom_point(aes(color = as.character(cov_outlier_in_contig)), size = 3) +
+  labs(x = "Coverage", y = "Departure from consensus", color = "Coverage outlier") +
+  theme_bw() +
+  theme(axis.title = element_text(face = "bold", size = 14),
+        axis.text = element_text(size = 12),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+plot_full <- ggplot(snv_O07_230, aes(y=departure_from_consensus, x=coverage)) + 
+  geom_smooth(method="lm", col="black") + 
+  geom_point(aes(color = as.character(cov_outlier_in_contig)), size = 3) +
+  labs(x = "Coverage", y = "Departure from consensus", color = "Coverage outlier") +
   stat_poly_eq(formula = y~x, 
                aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")), 
                parse = TRUE, label.x = "left", label.y = "top", size = 4) +
   annotate("text", y = 0.4, x = 130, label=paste0("correlation = ", r), hjust = 0) +
   annotate("text", y = 0.35, x = 130, label=paste0("p-value = ", p), hjust = 0) +
-  theme_classic() +
-  ggtitle("GENE 230 in MAG O07")
+  theme_bw() +
+  theme(axis.title = element_text(face = "bold", size = 14),
+        axis.text = element_text(size = 12),
+        legend.title = element_text(face = "bold", size = 14),
+        legend.text = element_text(size = 12),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+plot_full
+
+# save plots as svg for touch-ups in Affinity designer
+svg("11_SNV_figures/O07_gene230_noinfo.svg", width=8, height=6)
+plot_noinfo
+dev.off()
+
+svg("11_SNV_figures/O07_gene230.svg", width=8, height=6)
+plot_full
+dev.off()
 ```
 
 ### MAG O12: gene 423
 
-```{r coverage correlation O12 firs, eval = TRUEt}
+```{r coverage correlation O12 first, eval = TRUE}
 # O12
 snv_O12 <- read.table("07_RAW_VAR_TABLES/SNV_O12.txt", 
                       header=TRUE, fill=TRUE, sep="\t", quote = "")
 
 snv_O12_423 <- snv_O12[snv_O12$corresponding_gene_call == 423, ]
+snv_O12_423 <- snv_O12_423[snv_O12_423$sample_id == "O12_filter20",]
 
-# à faire pour chaque gène wSCG qui montre un/des SNVs
 r <- round(cor(snv_O12_423$departure_from_consensus, snv_O12_423$coverage), 2)
 p <- cor.test(snv_O12_423$departure_from_consensus, snv_O12_423$coverage)$p.value
 
-ggplot(snv_O12_423, aes(y=departure_from_consensus, x=coverage)) + 
+plot_noinfo <- ggplot(snv_O12_423, aes(y=departure_from_consensus, x=coverage)) + 
   geom_smooth(method="lm", col="black") + 
-  geom_point(aes(color = as.character(cov_outlier_in_contig))) +
+  geom_point(aes(color = as.character(cov_outlier_in_contig)), size = 3) +
+  labs(x = "Coverage", y = "Departure from consensus", color = "Coverage outlier") +
+  theme_bw() +
+  theme(axis.title = element_text(face = "bold", size = 14),
+        axis.text = element_text(size = 12),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+plot_full <- ggplot(snv_O12_423, aes(y=departure_from_consensus, x=coverage)) + 
+  geom_smooth(method="lm", col="black") + 
+  geom_point(aes(color = as.character(cov_outlier_in_contig)), size = 3) +
+  labs(x = "Coverage", y = "Departure from consensus", color = "Coverage outlier") +
   stat_poly_eq(formula = y~x, 
                aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")), 
                parse = TRUE, label.x = "left", label.y = "top", size = 4) +
   annotate("text", y = 0.4, x = 130, label=paste0("correlation = ", r), hjust = 0) +
   annotate("text", y = 0.35, x = 130, label=paste0("p-value = ", p), hjust = 0) +
-  theme_classic() +
-  ggtitle("GENE 423 in MAG O12")
+  theme_bw() +
+  theme(axis.title = element_text(face = "bold", size = 14),
+        axis.text = element_text(size = 12),
+        legend.title = element_text(face = "bold", size = 14),
+        legend.text = element_text(size = 12),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+plot_full
+
+# save plots as svg for touch-ups in Affinity designer
+svg("11_SNV_figures/O12_gene423_noinfo.svg", width=8, height=6)
+plot_noinfo
+dev.off()
+
+svg("11_SNV_figures/O12_gene423.svg", width=8, height=6)
+plot_full
+dev.off()
 ```
 
 ### MAG O12: gene 640
@@ -420,21 +535,48 @@ snv_O12 <- read.table("07_RAW_VAR_TABLES/SNV_O12.txt",
                       header=TRUE, fill=TRUE, sep="\t", quote = "")
 
 snv_O12_640 <- snv_O12[snv_O12$corresponding_gene_call == 640, ]
+snv_O12_640 <- snv_O12_640[snv_O12_640$sample_id == "O12_filter20",]
 
-# à faire pour chaque gène wSCG qui montre un/des SNVs
 r <- round(cor(snv_O12_640$departure_from_consensus, snv_O12_640$coverage), 2)
 p <- cor.test(snv_O12_640$departure_from_consensus, snv_O12_640$coverage)$p.value
 
-ggplot(snv_O12_640, aes(y=departure_from_consensus, x=coverage)) + 
+
+plot_noinfo <- ggplot(snv_O12_640, aes(y=departure_from_consensus, x=coverage)) + 
   geom_smooth(method="lm", col="black") + 
-  geom_point(aes(color = as.character(cov_outlier_in_contig))) +
+  geom_point(aes(color = as.character(cov_outlier_in_contig)), size = 3) +
+  labs(x = "Coverage", y = "Departure from consensus", color = "Coverage outlier") +
+  theme_bw() +
+  theme(axis.title = element_text(face = "bold", size = 14),
+        axis.text = element_text(size = 12),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+plot_full <- ggplot(snv_O12_640, aes(y=departure_from_consensus, x=coverage)) + 
+  geom_smooth(method="lm", col="black") + 
+  geom_point(aes(color = as.character(cov_outlier_in_contig)), size = 3) +
+  labs(x = "Coverage", y = "Departure from consensus", color = "Coverage outlier") +
   stat_poly_eq(formula = y~x, 
                aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")), 
                parse = TRUE, label.x = "left", label.y = "top", size = 4) +
   annotate("text", y = 0.4, x = 130, label=paste0("correlation = ", r), hjust = 0) +
   annotate("text", y = 0.35, x = 130, label=paste0("p-value = ", p), hjust = 0) +
-  theme_classic() +
-  ggtitle("GENE 640 in MAG O12")
+  theme_bw() +
+  theme(axis.title = element_text(face = "bold", size = 14),
+        axis.text = element_text(size = 12),
+        legend.title = element_text(face = "bold", size = 14),
+        legend.text = element_text(size = 12),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+plot_full
+
+# save plots as svg for touch-ups in Affinity designer
+svg("11_SNV_figures/O12_gene640_noinfo.svg", width=8, height=6)
+plot_noinfo
+dev.off()
+
+svg("11_SNV_figures/O12_gene640.svg", width=8, height=6)
+plot_full
+dev.off()
 ```
 
 
