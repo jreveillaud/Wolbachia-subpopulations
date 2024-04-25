@@ -101,7 +101,7 @@ The complete anvi'o metagenomics workflow results can be found in the following 
 * `05_ANVIO_PROFILE`: Anvi’o single profiles for each sample
 * `06_MERGED`: Anvi’o merged profile databases for each assembly
 
-All the anvi'o merged profile databases from midgut and ovary samples are available at [https://doi.org/10.5281/zenodo.7183277](10.5281/zenodo.7183277).
+All the anvi'o merged profile databases from midgut and ovary samples are available at [10.5281/zenodo.7183277](https://doi.org/10.5281/zenodo.7183277).
 
 ## Estimation of host contamination (phyloflash)
 
@@ -332,7 +332,7 @@ After refinement using the anvi-refine program, we obtained five *Wolbachia* MAG
 | O07           | 91.55        | 0            | 143        | 1,340,038    | 34.4         |
 | O12           | 91.55        | 0            | 75         | 1,181,440    | 33.9         |
 
-The FASTA files for individual bins are available at [https://doi.org/10.5281/zenodo.7183303](10.5281/zenodo.7183303).
+The FASTA files for individual bins are available at [10.5281/zenodo.7183303](https://doi.org/10.5281/zenodo.7183303).
 
 
 # Read recruitment to the reconstructed *Wolbachia* MAGs
@@ -364,7 +364,7 @@ We then profiled the resulting bam files and merge the single profiles.
 Corresponding script: 
 [filter_mapping_and_profile.sh](files/script/filter_mapping_and_profile.sh)
 
-The anvi'o merged profile.dbs from references-mode and with filtered mapping, as well as the corresponding contigs.db are available at [https://doi.org/10.5281/zenodo.7183324](10.5281/zenodo.7183324).
+The anvi'o merged profile.dbs from references-mode and with filtered mapping, as well as the corresponding contigs.db are available at [10.5281/zenodo.7183324](https://doi.org/10.5281/zenodo.7183324).
 
 # (Meta)pangenomic analysis
 
