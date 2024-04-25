@@ -378,7 +378,7 @@ The anvi'o merged profile.dbs from references-mode and with filtered mapping, as
 
 * [4b-generate-coverage-data-for-GC-O11-M11.Rmd](files/script/snv_metapan/4b-generate-coverage-data-for-GC-O11-M11.Rmd): Generate coverage values of each metagenome and MLST+*wsp* genes at Gene Clusters (GCs) level for *Wolbachia* MAGs M11 and O11
 
-* [5-add-coverage-data-to-pan.sh](files/script/snv_metapan/5-add-coverage-data-to-pan.sh): Add coverage values previously generated in pangenome databases (Figure S3)
+* [5-add-coverage-data-to-pan.sh](files/script/snv_metapan/5-add-coverage-data-to-pan.sh): Add coverage values previously generated in pangenome databases (Figure S3 and S4)
 
 * [5b-check-coverage-of-wSCGs.md](files/script/snv_metapan/5b-check-coverage-of-wSCGs.md): Inspect the coverage of *w*SCGs (core pangenome) in each *Wolbachia* MAG (Figure S1)
 
@@ -387,9 +387,10 @@ The anvi'o merged profile.dbs from references-mode and with filtered mapping, as
 
 * [6-generate-variability-tables.md](files/script/snv_metapan/6-generate-variability-tables.md): Generate variability tables (Single Nucleotide Variants, Single Codon Variants, Single Amino Acid Variants), at intra-sample and inter-sample levels and add gene cluster information
 
-* [7-select-SNV-SCV-SAAVs.R](files/script/snv_metapan/7-select-SNV-SCV-SAAVs.R): Select SCVs and SAAVs generated from only the filtered SNVs for each *Wolbachia* MAG
-* [9a-SNV-figure-for-selected-splits.Rmd](files/script/snv_metapan/9a-SNV-figure-for-selected-splits.Rmd): Generate SNV and gene figures for selected splits from *Wolbachia* MAG O11 and O03. We then used Inskape to create the final SNV figures for these splits (Figures S5-7)
-(Figure S8): SNV filters
-(Figure S9-14): SNV inspection
+* [7a-detect-SNPs-SCVs-SAAVs.md](files/script/snv_metapan/7a-detect-SNPs-SCVs-SAAVs.md): Filter the SNV table to report only SNPs (inter-sample comparison, no coverage outliers, in wSCGs, with departure from reference over 0.98). Then select the potential SCVs and SAAVs resulting from these SNP positions for each *Wolbachia* MAG
+
+* [7b-SNP-figures.md](files/script/snv_metapan/7b-SNP-figures.md): Produce the SNP inspection figures (Figure 1, Figures S5-7)
+
+* [8-SNV-inspection.md](files/script/snv_metapan/8-SNV-inspection.md): Filter the SNV table for intra-sample variability and illustrate the filters (Figure S8). Generate gene-level figures for all positions from *Wolbachia* MAGs where SNVs were identified, as well as correlation plots between SNVs coverage and departure from consensus (Figures S9-14)
 
 

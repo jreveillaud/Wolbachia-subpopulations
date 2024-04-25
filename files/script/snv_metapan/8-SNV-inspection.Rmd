@@ -1,5 +1,5 @@
 ---
-title: "7-generate-variability-tables"
+title: "8-SNV-inspection"
 author: "Hans Schrieke, Blandine Trouche and Julie Reveillaud"
 date: "`r Sys.Date()`"
 output: 

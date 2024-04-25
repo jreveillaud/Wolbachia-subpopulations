@@ -1,0 +1,79 @@
+---
+title: "7b-SNP-figures"
+author: "Hans Schrieke, Blandine Trouche and Julie Reveillaud"
+date: "`r Sys.Date()`"
+output: 
+  github_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "/Users/btrouche/Dropbox/RosaLind/SNV_Meren")
+```
+
+## Figure 1A: Summary of SNP positions
+
+```{r plot of shared, eval = TRUE, height = 16, width = 12}
+library(ggplot2)
+library(patchwork)
+library(forcats)
+
+sample <- c("M11", "O11", "O03", "O07", "O12")
+
+for(i in sample){
+  
+  # read SNP table
+  snp <- read.table(paste0("08_FILTERED_VAR_TABLES/SNP/SNP_", i, ".txt"), 
+                   header=TRUE, fill=TRUE, sep="\t", quote = "") 
+  
+  # extract SNP identification information
+  gcs <- snp[, c("gene_cluster_id", "base_pos_in_codon", "codon_number", "sample_id")]
+  gcs$MAG <- paste0("MAG ", i)
+
+ assign(paste0("gene_clusters_", i), gcs)
+}
+
+# join tables
+gcs <- rbind(gene_clusters_M11,
+         gene_clusters_O03,
+         gene_clusters_O07,
+         gene_clusters_O11,
+         gene_clusters_O12)
+
+# create a new name sumarising gene cluser + codon number
+gcs$GC_pos <- paste0(gcs$gene_cluster_id, "_", gcs$codon_number)
+
+
+p <- ggplot(gcs, aes(x = factor(1), fill = sample_id)) +
+  geom_bar(aes(fill = sample_id)) + coord_polar("y") +
+  facet_grid(MAG~GC_pos, switch = "y", labeller = label_wrap_gen(3)) +
+  scale_fill_manual(values = c("M11_filter20" = "gold", "O03_filter20" = "red", 
+                               "O07_filter20" = "darkblue", "O11_filter20" = "darkgreen",
+                               "O12_filter20" = "pink")) +
+  theme_bw() +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        strip.text.x = element_text(face = "bold", angle = 90),
+        strip.text.y = element_text(face = "bold"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+p
+
+svg("12_SNP_figures/Fig1A_SNP_positions.svg", width=12, height=6)
+p 
+dev.off()
+```
+
+## Figure 1B: Visualization of SNPs in gene 276 of MAG O07
+
+## Figure S5: Visualization of SNPs in gene 993 of MAG O12
+
+## Figure S6: Visualization of SNPs in gene 41 of MAG O12
+
+## Figure S7: Visualization of SNPs in gene 611 of MAG O12
+
+
